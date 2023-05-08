@@ -2,16 +2,22 @@
 
 # Platform-Agnostic CellNet
 
----
 
 ### Introduction <a name="introduction"></a>
 Platform-Agnostic CellNet (PACNet) is our newest version of CellNet that is agnostic to transcriptome profiling method, computational preprocessing method, and gene availability arising from preprocessing method, thus allowing cross-study comparisons of cell fate engineering protocol performance.  
 
 We also provide reference panels of human engineered cell types from state-of-the-field protocols for HSPC, heart, intestine/colon, liver, lung, neuron, and skeletal_muscle samples against which you can compare your own samples. Engineered reference panels for other human cell types and all mouse cell types are not yet available. However, we provide the resources and instructions for training and running both human and mouse PACNet here.  
 
-This is a walk-through tutorial on 1) how to train a PACNet classifier using a preprocessed training expression matrix and 2) how to apply the classifier to a preprocessed query study (and reference engineered panel, if applicable). All the code below is also available in a single R file, `agnosticCellNet_example.R`.  
+Below is a walk-through tutorial on 
+1. how to train a PACNet classifier using a preprocessed training expression matrix and 
+2. how to apply the classifier to a preprocessed query study (and reference engineered panel, if applicable). 
+All the code below is also available in a single R file, `agnosticCellNet_example.R`.  
 
-See also our [PACNet preprint](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
+See also:
+
+PACNet is also available as a [web application](http://cahanlab.org/resources/agnosticCellNet_web/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods.
+
+View our PACNet preprint [here](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
 
 For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
 
