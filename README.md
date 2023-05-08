@@ -21,7 +21,7 @@ We also provide reference panels of human engineered cell types from state-of-th
 
 This is a walk-through tutorial on 1) how to train a PACNet classifier using a preprocessed training expression matrix and 2) how to apply the classifier to a preprocessed query study (and reference engineered panel, if applicable). All the code below is also available in a single R file, `agnosticCellNet_example.R`.  
 
-For associated publication, please see our [preprint](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
+See also our [PACNet preprint](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
 
 For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
 
