@@ -1,16 +1,6 @@
-# Training and Running Platform-Agnostic CellNet
+<img src="images/PACNet_icon.jpg">
 
-### Table of contents
-
-[Introduction](#introduction)
-
-[Data](#data)
-
-[Installation](#installation)
-
-[Training](#training)
-
-[Query](#query)
+# Platform-Agnostic CellNet
 
 ---
 
@@ -24,6 +14,19 @@ This is a walk-through tutorial on 1) how to train a PACNet classifier using a p
 See also our [PACNet preprint](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
 
 For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
+
+
+### Table of contents
+
+
+[Data](#data)
+
+[Installation](#installation)
+
+[Training](#training)
+
+[Query](#query)
+
 
 ---
 
