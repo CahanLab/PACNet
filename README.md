@@ -284,7 +284,7 @@ acn_queryClassHm(classMatrixQuery, main = paste0("Classification Heatmap, ", stu
 dev.off()
 ```
 
-#### Prepare GRN for Network Influence Score 
+#### Prepare GRN and expression data for Network Influence Score calculation
 
 Subset `grnAll` and `trainNormParam` objects based on intersecting genes.
 ```R
@@ -295,12 +295,14 @@ trainNormParam <- utils_loadObject("liver_trainNormParam.rda")
 # These two functions can be found in pacnet_utils.R
 grnAll <- subsetGRNall(grnAll, iGenes)
 trainNormParam <- subsetTrainNormParam(trainNormParam, grnAll, iGenes)
+
+
+queryExpDat_ranked <- logRank(queryExpDat, base = 0)
+queryExpDat_ranked <- as.data.frame(queryExpDat_ranked)
 ```
 
 <!-- Compute GRN statuses and save:
 ```R
-queryExpDat_ranked <- logRank(queryExpDat, base = 0)
-queryExpDat_ranked <- as.data.frame(queryExpDat_ranked)
 system.time(GRN_statusQuery <- ccn_queryGRNstatus(expQuery = queryExpDat_ranked, grn_return = grnAll, 
                                                   trainNorm = trainNormParam, classifier_return = my_classifier, prune = TRUE))
 save(GRN_statusQuery, file="example_outputs/my_study_GRN_status.rda")
