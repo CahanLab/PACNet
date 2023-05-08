@@ -21,7 +21,9 @@ We also provide reference panels of human engineered cell types from state-of-th
 
 This is a walk-through tutorial on 1) how to train a PACNet classifier using a preprocessed training expression matrix and 2) how to apply the classifier to a preprocessed query study (and reference engineered panel, if applicable). All the code below is also available in a single R file, `agnosticCellNet_example.R`.  
 
-For previous versions of CellNet, please visit https://github.com/pcahan1/CellNet.  
+For associated publication, please see our [preprint](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
+
+For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
 
 ---
 
@@ -282,7 +284,7 @@ acn_queryClassHm(classMatrixQuery, main = paste0("Classification Heatmap, ", stu
 dev.off()
 ```
 
-#### Compute GRN Status
+#### Prepare GRN for Network Influence Score 
 
 Subset `grnAll` and `trainNormParam` objects based on intersecting genes.
 ```R
@@ -295,7 +297,7 @@ grnAll <- subsetGRNall(grnAll, iGenes)
 trainNormParam <- subsetTrainNormParam(trainNormParam, grnAll, iGenes)
 ```
 
-Compute GRN statuses and save:
+<!-- Compute GRN statuses and save:
 ```R
 queryExpDat_ranked <- logRank(queryExpDat, base = 0)
 queryExpDat_ranked <- as.data.frame(queryExpDat_ranked)
@@ -304,7 +306,7 @@ system.time(GRN_statusQuery <- ccn_queryGRNstatus(expQuery = queryExpDat_ranked,
 save(GRN_statusQuery, file="example_outputs/my_study_GRN_status.rda")
 ```
 
-Plot GRN status bar plots:
+Plot GRN status bar plots: 
 ```R
 cell_types <- rownames(GRN_statusQuery)
 GRN_statusQuery <- GRN_statusQuery[,querySampTab$sample_name]
@@ -330,7 +332,7 @@ for(type in cell_types) {
 dev.off()
 ```
 
-[Example GRN status plots](example_outputs/my_study_GRN_status_plots.pdf)
+[Example GRN status plots](example_outputs/my_study_GRN_status_plots.pdf) -->
 
 
 #### Compute Network Influence Score (NIS) for transcriptional regulators
