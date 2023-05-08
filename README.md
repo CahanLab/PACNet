@@ -11,9 +11,10 @@ We also provide reference panels of human engineered cell types from state-of-th
 Below is a walk-through tutorial on 
 1. how to train a PACNet classifier using a preprocessed training expression matrix and 
 2. how to apply the classifier to a preprocessed query study (and reference engineered panel, if applicable). 
-All the code below is also available in a single R file, `agnosticCellNet_example.R`.  
 
-See also:
+All the code below is also available in a single R file, `agnosticCellNet_example.R`.
+
+#### See also
 
 PACNet is also available as a [web application](http://cahanlab.org/resources/agnosticCellNet_web/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods.
 
@@ -67,6 +68,7 @@ install.packages("devtools")
 library(devtools)
 install_github("pcahan1/CellNet", ref="master")
 install_github("pcahan1/cancerCellNet@v0.1.1", ref="master")
+source("pacnet_utils.R")
 ```
 Other required packages: plyr, ggplot2, RColorBrewer, pheatmap, plotly
 
@@ -81,7 +83,6 @@ library(RColorBrewer)
 library(pheatmap)
 library(plotly)
 library(igraph)
-source("pacnet_utils.R")
 ```
 
 ### Training <a name="training"></a>
