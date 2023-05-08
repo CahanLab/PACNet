@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-836SPJH7DH"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-836SPJH7DH');
+  </script>
+
+  <title>Cahan Lab | at JHMI</title>
+
+  <!-- Original -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="shortcut icon" href="logo.png" type='image/x-icon' />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/font-awesome.min.css" />
+  <script src="jquery.min.js"></script>
+  <script src="jquery.scrollex.min.js"></script>
+  <script src="jquery.scrolly.min.js"></script>
+  <script src="skel.min.js"></script>
+  <script src="util.js"></script>
+  <script src="clipboard.js-master/dist/clipboard.min.js"></script>   
+  <script src="terminal.js"></script>   
+  <script src="main.js"></script>
+
+  <!-- User-added -->
+  <!-- <script src="jquery.min.js"></script>
+  <link href="css/shiny.min.css" rel="stylesheet" />
+  <script src="shiny.min.js"></script>
+  <link href="css/selectize.bootstrap3.css" rel="stylesheet" />
+  <script src="selectize.min.js"></script>
+  <script src="selectize-plugin-a11y.min.js"></script>
+  <link href="css/shinyWidgets.min.css" rel="stylesheet" />
+  <script src="shinyWidgets-bindings.min.js"></script>
+  <script src="htmlwidgets.js"></script>
+  <script src="plotly.js"></script>  
+  <link rel="stylesheet" href="css/spinner.css"/>
+  <script src="spinner.js"></script>
+  <link rel="stylesheet" href="css/css-loaders.css"/>
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/bootstrap-accessibility.min.css" rel="stylesheet" />
+  <script src="bootstrap.min.js"></script>
+  <script src="bootstrap-accessibility.min.js"></script>  
+  <link rel="stylesheet" type="text/css" href="css/cosmo.min.css"/> -->
+
+  <script type="application/html-dependencies">jquery[3.5.1];shiny-css[1.6.0];shiny-javascript[1.6.0];selectize[0.12.4];shinyWidgets[0.6.0];htmlwidgets[1.5.3];plotly-binding[4.9.4.1];bootstrap[3.4.1]</script>
+  <link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="shared/bootstrap/accessibility/css/bootstrap-accessibility.min.css" rel="stylesheet" />
+  <script src="shared/bootstrap/js/bootstrap.min.js"></script>
+  <script src="shared/bootstrap/accessibility/js/bootstrap-accessibility.min.js"></script>  
+  <link rel="stylesheet" type="text/css" href="shinythemes/css/cosmo.min.css"/>
+
+  {{ headContent() }}
+
+    <style>
+      strong{
+        color: black;
+      }
+      label {
+        color: black;
+      }
+      p {
+        color: black;
+      }
+      dt-right {
+        color: black;
+      }
+  </style>
+
+</head>
+
+<body class="landing">
+  <div class="container-fluid">
+    {{ useShinyjs() }}
+    <h1>
+      <div>
+        PACNet Web App
+        <img src="images/logo.png" height="60"/>
+      </div>
+    </h1>
+    <hr/>
+    <h2>Introduction</h2>
+    <p>
+      CellNet is a network-biology-based, computational platform that assesses the fidelity of 
+     cellular engineering and generates hypotheses for improving cell derivations. 
+     CellNet is based on the reconstruction of cell type-specific gene regulatory networks (GRNs), 
+     which we performed using publicly available bulk RNA-Seq data of 14 human cell and tissue types: ESC, endothelial, fibroblast, heart, HSPC, intestine/colon, kidney, liver, lung, neuron, skeletal muscle, monocyte/macrophage, B cell and T cell.
+     Learn more about CellNet at <a>https://github.com/pcahan1/CellNet</a>
+    </p>
+    <p>
+      Platform-Agnostic CellNet (PACNet) is our newest version of CellNet that is agnostic to transcriptome profiling method, computational preprocessing method, and gene availability arising from preprocessing method, thus allowing cross-study comparisons of cell fate engineering protocol performance. It also performs comparisons to panels of engineered cell types from state-of-the-field protocols <strong>for HSPC, heart, intestine/colon, liver, lung, neuron, and skeletal_muscle</strong> samples. So far, the PACNet web app is only available for human data. However, we provide the resources and instructions for training and running both human and mouse PACNet <a href=https://github.com/pcahan1/CellNet/tree/master/agnostic_cellnet>here</a>. Below, we describe how to use this web app to analyze human bulk RNA-Seq data.
+    </p>
+    <hr/>
+
+    <h2>How to use this application</h2>
+
+
+    <h4>Inputs for CellNet Analysis: </h4>
+    <p>
+      1) 
+      <strong>Study name</strong>
+      : desired study name
+    </p>
+    <p>
+      2) <strong>.csv sample metadata table</strong>
+      with the following columns at minimum: sample_name, description1
+    </p>
+    <p>Please make sure the columns are named exactly as above. Extra columns will be ignored.
+    </p>
+    <p>
+      3) <strong>.csv counts, TPM, or FPKM expression matrix with gene symbols as row names and sample names as column names. 
+     COLUMN NAMES OF EXPRESSION MATRIX MUST MATCH sample_name COLUMN OF SAMPLE METADATA TABLE</strong>. Column order does not matter.
+    </p>
+    
+    <p>
+      4) <strong>Target cell or tissue type.</strong> If your target cell/tissue type is not one of those listed, please select "none_of_the_above" as your Target Cell/Tissue Type. In this case, neither comparison against engineered reference samples nor calculation of Network Influence Scores will be performed; however, PACNet will still produce classification results for your data.
+    </p>
+    <br>
+    <h4>Browsing reference data: </h4>
+    <p><strong>Alternatively, choose 'Browse reference data' to browse available engineered reference datasets rather analyzing an input dataset.</strong></p>
+    <hr>
+
+   
+    <h4>Outputs: </h4>
+    <p>
+      1) 
+      <strong>Classification heatmap</strong>
+      : Columns represent query samples, and rows represent tissue types of the training data. 
+     Each square is colored by the query sample's classification score for the given tissue type.
+      <strong>Scores range from 0 (distinct from the tissue type of the training data) to 1 (indistinguishable from the tissue type of the training data).</strong>
+    </p>
+    <p>Classification heatmaps for panels of engineered reference samples are available for HSPC, heart, intestine/colon, liver, lung, neuron, and skeletal_muscle and will be displayed automatically alongside your results.
+    </p>
+    <p>
+      2) 
+      <!--
+      <strong>GRN Status</strong>
+      : GRN status indicates the extent to which a tissue GRN is established in the training and query samples. 
+     The raw GRN status is computed as the mean z-score of all genes in a tissue GRN, weighted by their importance to the associated tissue classifier. 
+     The raw GRN status is then normalized to the mean raw GRN status of the training data samples of the given tissue. 
+     Error bars represent mean ± 1 s.d.
+    </p>
+    <p>
+      3)  -->
+      <strong>Network Influence Score (NIS) for transcriptional regulators</strong>
+      : The transcriptional regulators of the tissue GRN are shown on the y axis, 
+     with the NIS of each regulator on the x axis. 
+     The NIS prioritizes transcription factors (TFs) such that their experimental perturbation is predicted to improve the target tissue classification. <strong>Negative scores suggest that upregulation of a given TF's expression is needed to achieve the target cell type, and positive scores suggest that downregulation is needed.</strong></p>
+      <p>If there are more than 50 TFs in a cell/tissue type-specific network, then NIS scores for only the top 50 TFs by absolute value of NIS score will be displayed. However, the full matrix of NIS scores for each TF in the cell/tissue type-specific network and each sample is available for download. </p>
+    <!-- <p>The NIS of a TF is computed based on three components: 
+     The first component is the extent to which the TF is dysregulated as compared with its expected value in the target tissue type. 
+     The second component is the number of predicted targets of the TF. The third component is the extent to which the target genes are dysregulated.</p> -->
+    
+    <hr/>
+    
+    {{ cellNetApp }}  
+
+  </div>
+
+<footer id="footer">
+  <ul class="icons">
+    <li><a href="https://github.com/pcahan1" class="icon fa-github" target="blank"><span class="label">GitHub</span></a></li>
+    <li><a href="https://twitter.com/cahanLab" class="icon fa-twitter" target="blank"><span class="label">Twitter</span></a></li>
+    <li><a class="icon fa-envelope-o email" title="Copy email address to clipboard." data-clipboard-text="patrick.cahan@jhmi.edu"><span class="label">Email</span></a></li>
+  </ul>
+  <ul class="copyright">
+    <li>&copy; 2019 Patrick Cahan - All Rights Reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+  </ul>
+</footer>
+
+</body>
+</html>
