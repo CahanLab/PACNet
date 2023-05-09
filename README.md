@@ -1,4 +1,4 @@
-<img src="images/PACNet_icon.jpg">
+<img src="images/PACNet_icon.jpg" width=200>
 
 # Platform-Agnostic CellNet
 
