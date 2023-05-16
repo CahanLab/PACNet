@@ -29,6 +29,7 @@
   <script src="terminal.js"></script>   
   <script src="main.js"></script>
 
+    {{ headContent() }}
   <!-- User-added -->
   <!-- <script src="jquery.min.js"></script>
   <link href="css/shiny.min.css" rel="stylesheet" />
@@ -50,13 +51,16 @@
   <link rel="stylesheet" type="text/css" href="css/cosmo.min.css"/> -->
 
   <script type="application/html-dependencies">jquery[3.5.1];shiny-css[1.6.0];shiny-javascript[1.6.0];selectize[0.12.4];shinyWidgets[0.6.0];htmlwidgets[1.5.3];plotly-binding[4.9.4.1];bootstrap[3.4.1]</script>
-  <link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  
+
+  <!--<link href="shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
   <link href="shared/bootstrap/accessibility/css/bootstrap-accessibility.min.css" rel="stylesheet" />
   <script src="shared/bootstrap/js/bootstrap.min.js"></script>
   <script src="shared/bootstrap/accessibility/js/bootstrap-accessibility.min.js"></script>  
   <link rel="stylesheet" type="text/css" href="shinythemes/css/cosmo.min.css"/>
+-->
 
-  {{ headContent() }}
+ 
 
     <style>
       strong{
@@ -77,13 +81,14 @@
 
 <body class="landing">
 <div id="page-wrapper">
+
   <!-- Header -->
     <header id="header">
       <h1><a href="http://cahanlab.org/">Cahan Lab | at JHMI</a></h1>
     </header>
 
 
-  <div class="container-fluid">
+  <!--<div class="container-fluid">-->
     {{ useShinyjs() }}
     <h1>
       <div>        
