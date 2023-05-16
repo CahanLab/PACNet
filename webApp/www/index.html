@@ -76,11 +76,17 @@
 </head>
 
 <body class="landing">
+
+  <!-- Header -->
+    <header id="header">
+      <h1><a href="http://cahanlab.org/">Cahan Lab | at JHMI</a></h1>
+    </header>
+
+
   <div class="container-fluid">
     {{ useShinyjs() }}
     <h1>
-      <div>
-        PACNet Web App
+      <div>        
         <img src="images/PACNet_icon.jpg" height="60"/>
       </div>
     </h1>
@@ -90,7 +96,7 @@
     <p>
     Platform-Agnostic CellNet (PACNet) is our newest version of <a href="https://github.com/pcahan1/CellNet">CellNet</a>. Just like CellNet, PACNet is a network-biology-based, computational platform that assesses the fidelity of cellular engineering and generates hypotheses for improving cell derivations. Howecver, PACNet is agnostic to applicable across many transcriptome profiling methods, expression estimations methods, and it does not require 100% gene overlap between query and reference samples. These features enable cross-study comparisons of cell fate engineering protocols. We have harvested panels of expression data of engineered cells from state-of-the-field protocols for <strong>HSPC, heart, intestine/colon, liver, lung, neuron, and skeletal_muscle</strong>. This means that you can compare your engineered cells to the derived from the most commonly used protocols without having to re-do those experiments yourself. The PACNet web app is only available for human data. However, we provide the resources and instructions for applying PACNet human and mouse <a href="https://github.com/pcahan1/PACNet">here</a>. Below, we describe how to use this web app to analyze human bulk-derived RNA-Seq data.
     </p>
-    <hr/>
+    <hr>
 
     <h2>How to use this application</h2>
 
