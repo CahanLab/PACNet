@@ -14,6 +14,9 @@ suppressPackageStartupMessages({
   library(pheatmap)
   library(igraph)
   library(plotly)
+  ###
+  library(dplyr)
+  ###
   source("plotting.R")
   source("pacnet_utils.R")
 })
@@ -350,14 +353,33 @@ server <- function(input, output, session) {
   queryExpDat <- eventReactive(input$expMatUpload, { 
     tempDat <- tryCatch(
       {
+        #read.csv(input$expMatUpload$datapath, stringsAsFactors = FALSE, 
+        #         header=TRUE, row.names=1, check.names=FALSE) 
+
         read.csv(input$expMatUpload$datapath, stringsAsFactors = FALSE, 
-                 header=TRUE, row.names=1, check.names=FALSE) 
+                 header=TRUE, row.names=NULL, check.names=FALSE) 
       },
       error=function(condition) {
         shinyalert("Oops!", paste0("Something went wrong with your expression matrix upload: ",
                                    condition), type="error")
         return(NULL)
       }
+
+      # Find duplicate gene names
+      colnames(tempDat)[1] = "gene"
+      dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
+
+      # Calculate median for each duplicate and select the row with the highest median expression
+      dupes <- dupes %>% 
+        group_by(gene) %>% 
+        slice(which.max(apply(.[-1], 1, median))) %>% 
+        ungroup()
+
+      # Remove duplicates from the original data
+      tempDat <- tempDat[!duplicated(tempDat$gene),]
+
+      # Append rows with the highest median expression back to the data
+      tempDat <- rbind(tmpDat, dupes)
     )
     return(tempDat)
   })
