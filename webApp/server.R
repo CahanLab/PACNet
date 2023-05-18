@@ -14,6 +14,9 @@ suppressPackageStartupMessages({
   library(pheatmap)
   library(igraph)
   library(plotly)
+  ###
+  library(dplyr)
+  ###
   source("plotting.R")
   source("pacnet_utils.R")
 })
@@ -348,20 +351,45 @@ server <- function(input, output, session) {
   
   # Read in file input for expression matrix
   queryExpDat <- eventReactive(input$expMatUpload, { 
-    tempDat <- tryCatch(
-      {
+    tempDat <- tryCatch({
+        #read.csv(input$expMatUpload$datapath, stringsAsFactors = FALSE, 
+        #         header=TRUE, row.names=1, check.names=FALSE) 
+
         read.csv(input$expMatUpload$datapath, stringsAsFactors = FALSE, 
-                 header=TRUE, row.names=1, check.names=FALSE) 
+                 header=TRUE, row.names=NULL, check.names=FALSE) 
       },
       error=function(condition) {
         shinyalert("Oops!", paste0("Something went wrong with your expression matrix upload: ",
                                    condition), type="error")
         return(NULL)
+      })
+    if(!is.null(tempDat)){
+      gene_names = tempDat[,1]
+      tempDat = tempDat[,2:ncol(tempDat)]
+      
+      dup_counts = table(gene_names)
+      if(any(dup_counts>1)){
+        dup_genes = names(which(dup_counts>1))
+        dup_ind = which(gene_names %in% dup_genes)
+        to_keep = rep(0, length(dup_genes))
+        for(i in seq(length(dup_genes))){
+          x2 = tempDat[which(gene_names == dup_genes[i]),]
+          meds = apply(x2, 1, median)
+          to_keep[i] = as.numeric(names(which.max(apply(x2, 1, median))))
+        }
+        x_new = tempDat[setdiff(1:nrow(tempDat), dup_ind), ]
+        x_new = rbind(x_new, tempDat[to_keep,])
+        genes_new = c(gene_names[setdiff(1:nrow(tempDat), dup_ind)], dup_genes)
+        rownames(x_new) = genes_new
+        tempDat = x_new
       }
-    )
-    return(tempDat)
+      else{
+        rownames(tempDat) = gene_names
+      }
+    }
+    return(tempDat)    
   })
-  
+
   species <- eventReactive(input$species, {
     input$species
   })
@@ -571,19 +599,17 @@ server <- function(input, output, session) {
       }
       
       cnProc_broad <- broadReturn$cnProc
-      tryCatch(
-        {
+      tryCatch({
           classMatrixQuery <- broadClass_predict(cnProc = cnProc_broad, 
                                                  expDat = queryExpDat_new, 
                                                  nrand = 3)
-        },
-        error=function(condition) {
-          shinyalert("Error", paste0("Something went wrong with classification of your samples: ",
-                                     condition), type="error")
-          return(NULL)
-        }
+          },
+          error=function(condition) {
+            shinyalert("Error", paste0("Something went wrong with classification of your samples: ",
+                                       condition), type="error")
+            return(NULL)
+          }
       )
-      
       shinyjs::show("classDiv")
       
       ### Plot classification heatmap for user-inputted study
