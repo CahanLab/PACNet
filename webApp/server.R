@@ -598,6 +598,7 @@ server <- function(input, output, session) {
       }
       
       cnProc_broad <- broadReturn$cnProc
+      
       classMatrixQuery <- broadClass_predict(cnProc = cnProc_broad, 
                                              expDat = queryExpDat_new, 
                                              nrand = 3)
