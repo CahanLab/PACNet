@@ -364,25 +364,28 @@ server <- function(input, output, session) {
         return(NULL)
       })
     if(!is.null(tempDat)){
-        # Find duplicate gene names
-        # assumes first column is gene names
-        colnames(tempDat)[1] = "gene"
-        dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
+        gene_names = tempDat[,1]
+        tempDat = tempDat[,2:ncol(tempDat)]
 
-        # Calculate median for each duplicate and select the row with the highest median expression
-        dupes <- dupes %>% 
-          group_by(gene) %>% 
-          slice(which.max(apply(.[-1], 1, median))) %>% 
-          ungroup()
-
-        # Remove duplicates from the original data
-        tempDat <- tempDat[!duplicated(tempDat$gene),]
-
-        # Append rows with the highest median expression back to the data
-        tempDat <- rbind(tempDat, dupes)
-        rownames(tempDat) = as.vector(tempDat[,"gene"])
-        snames = colnames(tempDat)[2:ncol(tempDat)]
-        tempDat = tempDat[,snames]
+        dup_counts = table(gene_names)
+        if(any(dup_counts>1)){
+            dup_genes = names(which(dup_counts>1))
+            dup_ind = which(gene_names %in% dup_genes)
+            to_keep = rep(0, length(dup_genes))
+            for(i in seq(length(dup_genes))){
+                x2 = tempDat[which(gene_names == dup_genes[i]),]
+                meds = apply(x2, 1, median)
+                to_keep[i] = as.numeric(names(which.max(apply(x2, 1, median))))
+            }
+           x_new = tempDat[setdiff(1:nrow(tempDat), dup_ind), ]
+           x_new = rbind(x_new, tempDat[to_keep,])
+           genes_new = c(gene_names[setdiff(1:nrow(tempDat), dup_ind)], dup_genes)
+           rownames(x_new) = genes_new
+           tempDat = x_new
+        }
+        else{
+          rownames(tempDat) = gene_names
+        }
       }
     return(tempDat)    
   })
