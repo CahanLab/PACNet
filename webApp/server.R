@@ -351,8 +351,7 @@ server <- function(input, output, session) {
   
   # Read in file input for expression matrix
   queryExpDat <- eventReactive(input$expMatUpload, { 
-    tempDat <- tryCatch(
-      {
+    tempDat <- tryCatch({
         #read.csv(input$expMatUpload$datapath, stringsAsFactors = FALSE, 
         #         header=TRUE, row.names=1, check.names=FALSE) 
 
@@ -363,25 +362,25 @@ server <- function(input, output, session) {
         shinyalert("Oops!", paste0("Something went wrong with your expression matrix upload: ",
                                    condition), type="error")
         return(NULL)
+      })
+    if(!is.null(tmpDat)){
+        # Find duplicate gene names
+        colnames(tempDat)[1] = "gene"
+        dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
+
+        # Calculate median for each duplicate and select the row with the highest median expression
+        dupes <- dupes %>% 
+          group_by(gene) %>% 
+          slice(which.max(apply(.[-1], 1, median))) %>% 
+          ungroup()
+
+        # Remove duplicates from the original data
+        tempDat <- tempDat[!duplicated(tempDat$gene),]
+
+        # Append rows with the highest median expression back to the data
+        tempDat <- rbind(tmpDat, dupes)
       }
-
-      # Find duplicate gene names
-      colnames(tempDat)[1] = "gene"
-      dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
-
-      # Calculate median for each duplicate and select the row with the highest median expression
-      dupes <- dupes %>% 
-        group_by(gene) %>% 
-        slice(which.max(apply(.[-1], 1, median))) %>% 
-        ungroup()
-
-      # Remove duplicates from the original data
-      tempDat <- tempDat[!duplicated(tempDat$gene),]
-
-      # Append rows with the highest median expression back to the data
-      tempDat <- rbind(tmpDat, dupes)
-    )
-    return(tempDat)
+    return(tempDat)    
   })
   
   species <- eventReactive(input$species, {
