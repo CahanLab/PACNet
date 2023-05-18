@@ -365,6 +365,7 @@ server <- function(input, output, session) {
       })
     if(!is.null(tempDat)){
         # Find duplicate gene names
+        # assumes first column is gene names
         colnames(tempDat)[1] = "gene"
         dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
 
@@ -379,6 +380,9 @@ server <- function(input, output, session) {
 
         # Append rows with the highest median expression back to the data
         tempDat <- rbind(tempDat, dupes)
+        rownames(tempDat) = as.vector(tempDat[,"gene"])
+        snames = colnames(tempDat)[2:ncol(tempDat)]
+        tempDat = tempDat[,snames]
       }
     return(tempDat)    
   })
