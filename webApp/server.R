@@ -363,7 +363,7 @@ server <- function(input, output, session) {
                                    condition), type="error")
         return(NULL)
       })
-    if(!is.null(tmpDat)){
+    if(!is.null(tempDat)){
         # Find duplicate gene names
         colnames(tempDat)[1] = "gene"
         dupes <- tempDat[duplicated(tempDat$gene) | duplicated(tempDat$gene, fromLast = TRUE),]
@@ -378,11 +378,11 @@ server <- function(input, output, session) {
         tempDat <- tempDat[!duplicated(tempDat$gene),]
 
         # Append rows with the highest median expression back to the data
-        tempDat <- rbind(tmpDat, dupes)
+        tempDat <- rbind(tempDat, dupes)
       }
     return(tempDat)    
   })
-  
+
   species <- eventReactive(input$species, {
     input$species
   })
