@@ -18,7 +18,7 @@ All the code below is also available in a single R file, `agnosticCellNet_exampl
 
 PACNet is also available as a [web application](http://cahanlab.org/resources/agnosticCellNet_web/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods.
 
-View our PACNet preprint [here](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
+View our PACNet publication [here](https://doi.org/10.1016/j.stemcr.2023.06.008).
 
 For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
 
