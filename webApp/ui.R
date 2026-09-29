@@ -1,38 +1,7 @@
 # CellNet WebApp ui for top-pairs, rank-based agnostic analysis of expression profiles
 
-# On AWS image:
-# sudo su - -c "R -e \"install.packages('BiocManager')\""
-# sudo su - -c "R -e \"BiocManager::install('AnnotationDbi')\""
-# sudo su - -c "R -e \"BiocManager::install('GO.db')\""
-# sudo su - -c "R -e \"BiocManager::install('org.Hs.eg.db')\""
-# sudo su - -c "R -e \"devtools::install_github('pcahan1/CellNet', ref='master')\""
-# sudo su - -c "R -e \"devtools::install_github('pcahan1/cancerCellNet')\""
-# sudo su - -c "R -e \"install.packages('shinythemes')\""
-# sudo su - -c "R -e \"install.packages('shinycssloaders')\""
-# sudo su - -c "R -e \"install.packages('shinyWidgets')\""
-# sudo su - -c "R -e \"install.packages('shinyjs')\""
-# sudo su - -c "R -e \"install.packages('shinyalert')\""
-# sudo su - -c "R -e \"install.packages('plotly')\""
+# Packages and helper sources are loaded in global.R.
 
-suppressPackageStartupMessages({
-  library(CellNet)
-  library(cancerCellNet)
-  library(shiny)
-  library(shinythemes)
-  library(shinycssloaders)
-  library(shinyWidgets)
-  library(shinyjs)
-  library(shinyalert)
-  library(shinybusy)
-  library(ggplot2)
-  library(gridExtra)
-  library(RColorBrewer)
-  library(pheatmap)
-  library(igraph)
-  library(plotly)
-  source("plotting.R")
-  source("pacnet_utils.R")
-})
 
 # ui <- fluidPage(
 #    #theme = shinytheme("cosmo"),
