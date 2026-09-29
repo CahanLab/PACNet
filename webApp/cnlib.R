@@ -265,24 +265,10 @@ findClassyGenes <- function(expDat, sampTab, dLevel, topX=25, dThresh=0, alpha1=
     expDat = expDat[ggenes,]
   }
 
-  ncores = parallel::detectCores(logical = TRUE) # detect the number of cores in the system
-  mcCores = 1
-  if(ncores * coreProportion >1){
-    mcCores = round(ncores * coreProportion)
-  }
-
-  cat(ncores, "logical cores in total", "  --> ", mcCores, "cores running to find classification genes...","\n")
+  # PACNet-web: serial only. The core count is NA under webR and the browser
+  # cannot start clusters; upstream defaults to serial (coreProportion = 0).
   xdiff = gnrAll(expDat, grps, sliceSize, coreProportion)
-
-  if(mcCores == 1) {
-    cgenes = lapply(X = xdiff, FUN = getClassGenes, topX = topX)
-
-  }
-  else {
-    cl = snow::makeCluster(mcCores, type="SOCK")
-    cgenes = snow::parLapply(cl = cl, x = xdiff, fun = getClassGenes, topX = topX)
-    snow::stopCluster(cl)
-  }
+  cgenes = lapply(X = xdiff, FUN = getClassGenes, topX = topX)
 
   labelled_cgenes = cgenes
   cgenes = unique(unlist(cgenes))
@@ -312,12 +298,7 @@ getClassGenes<-function(diffRes, topX=25, bottom=TRUE, leastDiff = TRUE) {
 }
 
 gnrAll<-function(expDat, cellLabels, sliceSize, coreProportion) {
-  ncores = parallel::detectCores(logical = FALSE) # detect the number of cores in the system
-  mcCores = 1
-  if(ncores * coreProportion > 1){
-    mcCores = round(ncores * coreProportion)
-  }
-
+  # PACNet-web: serial only (see findClassyGenes).
   nGenes = nrow(expDat)
   cat("nGenes = ",nGenes,"\n")
   str = 1
@@ -331,47 +312,22 @@ gnrAll<-function(expDat, cellLabels, sliceSize, coreProportion) {
     statList[[grp]] = data.frame()
   }
 
-  if(mcCores == 1) {
-    while(str <= nGenes){
-      if(stp>nGenes){
-        stp = nGenes
-      }
-
-      tempExpDat = expDat[str:stp, ]
-      tmpAns = lapply(X = myPatternG, FUN = sc_testPattern, expDat=tempExpDat)
-      cat(str,"-", stp,"\n")
-
-      for(gi in seq(length(myPatternG))){
-        grp = grps[[gi]]
-        statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
-      }
-
-      str = stp+1
-      stp = str + sliceSize - 1
-
+  while(str <= nGenes){
+    if(stp>nGenes){
+      stp = nGenes
     }
-  }
-  else {
-    cl = snow::makeCluster(mcCores, type="SOCK")
-    while(str <= nGenes){
-      if(stp>nGenes){
-        stp = nGenes
-      }
 
-      tempExpDat = expDat[str:stp, ]
-      tmpAns = snow::parLapply(cl = cl, x = myPatternG, fun = sc_testPattern, expDat=tempExpDat)
-      cat(str,"-", stp,"\n")
+    tempExpDat = expDat[str:stp, ]
+    tmpAns = lapply(X = myPatternG, FUN = sc_testPattern, expDat=tempExpDat)
+    cat(str,"-", stp,"\n")
 
-      for(gi in seq(length(myPatternG))){
-        grp = grps[[gi]]
-        statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
-      }
-
-      str = stp+1
-      stp = str + sliceSize - 1
-
+    for(gi in seq(length(myPatternG))){
+      grp = grps[[gi]]
+      statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
     }
-    snow::stopCluster(cl)
+
+    str = stp+1
+    stp = str + sliceSize - 1
   }
 
   cat("Done testing\n")
@@ -437,19 +393,10 @@ plot_class_PRs<-function(assessed){
 }
 
 ptGetTop<-function(expDat, cell_labels, cgenes_list=NA, topX=50, sliceSize = 5e3, quickPairs = FALSE, coreProportion = 1/4){
-
-  ncores = parallel::detectCores(logical = TRUE) # detect the number of cores in the system
-  mcCores = 1
-  if(ncores * coreProportion > 1){
-    mcCores = round(ncores * coreProportion)
-  }
-
+  # PACNet-web: serial only (see findClassyGenes).
   if(!quickPairs){
-    #ans<-vector()
     ans = list()
     genes = rownames(expDat)
-
-    cat(ncores, "logical cores in total", "  --> ", mcCores, "cores running to find top scoring gene pairs...","\n")
 
     # make a data frame of pairs of genes that will be sliced later
     pairTab = makePairTab(genes)
@@ -458,7 +405,6 @@ ptGetTop<-function(expDat, cell_labels, cgenes_list=NA, topX=50, sliceSize = 5e3
       stop(paste0("The data set has ", nrow(pairTab), " total combination of gene pairs. Please select a smaller topX."))
     }
 
-    # setup tmp ans list of sc_testPattern
     cat("setup ans and make pattern\n")
     grps = unique(cell_labels)
     myPatternG = sc_sampR_to_pattern(as.character(cell_labels))
@@ -467,61 +413,30 @@ ptGetTop<-function(expDat, cell_labels, cgenes_list=NA, topX=50, sliceSize = 5e3
       statList[[grp]] = data.frame()
     }
 
-    # make the pairedDat, and run sc_testPattern
     cat("make pairDat on slice and test\n")
     nPairs = nrow(pairTab)
     cat("nPairs = ",nPairs,"\n")
     str = 1
     stp = min(c(sliceSize, nPairs)) # detect what is smaller the slice size or npairs
 
-
-    if(mcCores == 1) {
-      while(str <= nPairs){
-        if(stp>nPairs){
-          stp = nPairs
-        }
-        tmpTab = pairTab[str:stp,]
-        tmpPdat = ptSmall(expDat, tmpTab)
-
-        tmpAns = lapply(X = myPatternG, FUN = sc_testPattern, expDat=tmpPdat)
-        cat(str,"-", stp,"\n")
-
-        for(gi in seq(length(myPatternG))){
-          grp = grps[[gi]]
-          statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
-        }
-
-
-        str = stp+1
-        stp = str + sliceSize - 1
-
+    while(str <= nPairs){
+      if(stp>nPairs){
+        stp = nPairs
       }
+      tmpTab = pairTab[str:stp,]
+      tmpPdat = ptSmall(expDat, tmpTab)
+
+      tmpAns = lapply(X = myPatternG, FUN = sc_testPattern, expDat=tmpPdat)
+      cat(str,"-", stp,"\n")
+
+      for(gi in seq(length(myPatternG))){
+        grp = grps[[gi]]
+        statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
+      }
+
+      str = stp+1
+      stp = str + sliceSize - 1
     }
-     else {
-       cl = snow::makeCluster(mcCores, type="SOCK")
-       while(str <= nPairs){
-         if(stp>nPairs){
-           stp = nPairs
-         }
-         tmpTab = pairTab[str:stp,]
-         tmpPdat = ptSmall(expDat, tmpTab)
-
-         tmpAns = snow::parLapply(cl = cl, x = myPatternG, fun = sc_testPattern, expDat=tmpPdat)
-         cat(str,"-", stp,"\n")
-
-         for(gi in seq(length(myPatternG))){
-           grp = grps[[gi]]
-           statList[[grp]] = rbind( statList[[grp]],  tmpAns[[grp]])
-         }
-
-
-         str = stp+1
-         stp = str + sliceSize - 1
-
-       }
-       snow::stopCluster(cl)
-     }
-
 
     cat("compile results\n")
     for(grp in grps){
@@ -541,11 +456,11 @@ ptGetTop<-function(expDat, cell_labels, cgenes_list=NA, topX=50, sliceSize = 5e3
       nPairs = nrow(pairTab)
       cat("nPairs = ", nPairs," for ", cct, "\n")
 
-      tmpPdat = ptSmall(expDat, pairTab)
+      # PACNet-web: score the pairs in slices (see sc_testPattern_sliced). Scoring
+      # ~45k pairs at once needs ~235 MB per class and exhausted browser memory.
+      tmpAns = sc_testPattern_sliced(myPatternG[[cct]], expDat, pairTab, sliceSize)
 
-      tmpAns = findBestPairs(sc_testPattern(myPatternG[[cct]], expDat=tmpPdat), topX)
-
-      ans[[cct]] = tmpAns
+      ans[[cct]] = findBestPairs(tmpAns, topX)
     }
 
     return(ans)
@@ -697,6 +612,45 @@ sc_testPattern<-function(pattern, expDat){
   pval = as.numeric(xxx[,8])  # p-value of X coefficient
   holm = p.adjust(pval, method='holm')
 
+
+  return(data.frame(row.names=geneids[pos_R_index], pval=pval[pos_R_index], cval=cval,holm=holm[pos_R_index]))
+}
+
+# PACNet-web: sc_testPattern() over the gene pairs in pairTab, one slice of
+# pairs at a time, returning exactly what sc_testPattern(pattern,
+# ptSmall(expDat, pairTab)) returns while holding only one slice in memory.
+# ls.print() rounds R-squared with format() across the whole batch, so the
+# raw R-squared values are collected and formatted once, over all pairs.
+sc_testPattern_sliced<-function(pattern, expDat, pairTab, sliceSize){
+  geneids = character(0)
+  rsquared = numeric(0)
+  coefs = list()
+  nPairs = nrow(pairTab)
+
+  for(str in seq(1, nPairs, by = sliceSize)){
+    stp = min(str + sliceSize - 1, nPairs)
+    pDat = ptSmall(expDat, pairTab[str:stp, , drop = FALSE])
+    fit = lsfit(pattern, t(pDat))
+    llfit = ls.print(fit, digits=25, print.it=FALSE)
+
+    # R-squared exactly as ls.print() computes it, before formatting
+    lsqr = fit$qr
+    totss = if (is.matrix(lsqr$qt)) colSums(lsqr$qt[-1L, ]^2) else sum(lsqr$qt[-1L]^2)
+    resss = colSums(as.matrix(fit$residuals)^2, na.rm = TRUE)
+    rsquared = c(rsquared, (totss - resss)/totss)
+
+    coefs[[length(coefs) + 1]] = matrix(unlist(llfit$coef), ncol=8, byrow=TRUE)
+    geneids = c(geneids, rownames(pDat))
+  }
+
+  rsq = as.numeric(format(round(rsquared, 25))) # as ls.print() formats a batch
+
+  pos_R_index = which(rsq >= 0)
+  xxx = do.call(rbind, coefs)
+  ccorr = xxx[pos_R_index,6]  # t-value of X coefficient
+  cval =  sqrt(rsq[pos_R_index]) * sign(ccorr)
+  pval = as.numeric(xxx[,8])  # p-value of X coefficient
+  holm = p.adjust(pval, method='holm')
 
   return(data.frame(row.names=geneids[pos_R_index], pval=pval[pos_R_index], cval=cval,holm=holm[pos_R_index]))
 }

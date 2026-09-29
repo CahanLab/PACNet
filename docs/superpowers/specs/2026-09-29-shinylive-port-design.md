@@ -115,9 +115,12 @@ upstream, each marked with a `# PACNet-web:` comment:
    everything runs serially. Upstream already defaults to serial
    (`coreProportion = 0`).
 2. `ptGetTop()` quick-pairs branch scores gene pairs in slices of
-   `sliceSize` and row-binds the per-slice statistics before
-   `findBestPairs()`. `findBestPairs()` orders by `cval` only, so results
-   are unchanged; peak memory drops from ~235 MB per class to ~26 MB.
+   `sliceSize` via a new `sc_testPattern_sliced()`. Because `ls.print()`
+   rounds R-squared with `format()` across the whole batch, a naive
+   row-bind of per-slice results changes near-tie ordering; the new
+   function keeps raw per-slice R-squared and formats once over all pairs,
+   reproducing upstream exactly (tested). Peak memory drops from ~235 MB
+   per class to ~10 MB.
 
 ### `webApp/pipeline.R`
 
