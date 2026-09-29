@@ -20,7 +20,7 @@ PACNet is also available as a [web application](https://cahanlab.github.io/PACNe
 
 View our PACNet publication [here](https://doi.org/10.1016/j.stemcr.2023.06.008).
 
-For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/pcahan1/CellNet).
+For previous versions of CellNet, please visit the original [CellNet repository](https://github.com/CahanLab/CellNet).
 
 
 ### Table of contents
@@ -87,8 +87,8 @@ Human Engineered Reference Panels
 ```R
 install.packages("devtools")
 library(devtools)
-install_github("pcahan1/CellNet", ref="master")
-install_github("pcahan1/cancerCellNet@v0.1.1", ref="master")
+install_github("CahanLab/CellNet", ref="master")
+install_github("CahanLab/cancerCellNet@v0.1.1", ref="master")
 source("pacnet_utils.R")
 ```
 Other required packages: plyr, ggplot2, RColorBrewer, pheatmap, plotly

@@ -13,6 +13,7 @@ suppressPackageStartupMessages({
   library(pheatmap)
   library(plotly)
   library(dplyr)
+  library(bslib)
 })
 # randomForest's namespace must be loaded so predict() dispatches on the
 # stored classifiers, but it is not attached: its margin() would mask
@@ -23,6 +24,7 @@ source("data_access.R")
 source("pacnet_utils.R")
 source("pipeline.R")
 source("plotting.R")
+source("ui_helpers.R")
 
 options(shiny.maxRequestSize = 50*1024^2)
 

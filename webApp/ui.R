@@ -1,223 +1,122 @@
-# CellNet WebApp ui for top-pairs, rank-based agnostic analysis of expression profiles
+# PACNet web app UI. Packages and helpers are loaded in global.R.
 
-# Packages and helper sources are loaded in global.R.
+page_head <- tags$head(
+  # Google Analytics
+  tags$script(async = NA, src = "https://www.googletagmanager.com/gtag/js?id=G-836SPJH7DH"),
+  tags$script(HTML(
+    "window.dataLayer = window.dataLayer || [];
+     function gtag(){dataLayer.push(arguments);}
+     gtag('js', new Date());
+     gtag('config', 'G-836SPJH7DH');")),
+  tags$link(rel = "icon", type = "image/jpeg", href = "images/PACNet_icon.jpg"),
+  tags$style(HTML(
+    ".doc-page table { margin: 0.5rem 0 1.25rem; border-collapse: collapse; }
+     .doc-page th, .doc-page td { padding: 0.4rem 0.9rem; border-bottom: 1px solid #dee2e6;
+                                  vertical-align: top; }
+     .doc-page th { border-bottom-width: 2px; }"))
+)
 
+inputs_panel <- tagList(
+  selectInput(inputId = "actionChoice",
+              label = label_tip("What do you want to do?", TIPS$actionChoice),
+              choices = c("CellNet analysis", "Browse reference data"),
+              selected = "CellNet"),
+  uiOutput(outputId = "appOptions"),
+  bslib::tooltip(
+    actionButton(inputId = "submit", label = "Submit", class = "btn-primary w-100"),
+    TIPS$submit, placement = "right")
+)
 
-# ui <- fluidPage(
-#    #theme = shinytheme("cosmo"),
-#    #theme = shinytheme("flatly"),
-#    
-#    useShinyjs(),
-#    
-#    titlePanel(windowTitle="CellNet Web",
-#               title = div("CellNet Web App", img(src="images/logo.png", height=60))),
-#    hr(),
-#    h2("Introduction"),
-#    p("CellNet is a network-biology-based, computational platform that assesses the fidelity of
-#      cellular engineering and generates hypotheses for improving cell derivations.
-#      CellNet is based on the reconstruction of cell type-specific gene regulatory networks (GRNs),
-#      which we performed using publicly available RNA-Seq data of 16 human cell and tissue types.
-#      Below, we describe how to apply CellNet to your RNA-Seq data."),
-#    p("See more at ", tags$a("https://github.com/pcahan1/CellNet")),
-#    hr(),
-#    
-#    h2("How to use this application"),
-#    h4("Inputs: "),
-#    p("1) ", strong("Study name"), ": desired study name"),
-#    p("2) ", strong("Sample metadata table"), "with the following columns at minimum: sample_name, description1"),
-#    p("3) ", strong("non-normalized"), "counts, TPM, or FPKM expression matrix with gene", strong("symbols"), "as row names and sample names as column names.
-#      Column names in counts matrix must match sample_name column in sample metadata table."),
-#    br(),
-#    p("Alternatively, choose 'Browse reference data' to browse available engineered reference datasets rather analyzing an input dataset."),
-#    hr(),
-#    
-#    h4("Outputs: "),
-#    p("1) ", strong("Classification heatmap"),": Columns represent query samples, and rows represent tissue types of the training data.
-#      Each square is colored by the query sample's classification score for the given tissue type.",
-#      strong("Scores range from 0 (distinct from the tissue type of the training data) to 1 (indistinguishable from the tissue type of the training data).")),
-#    p("2) ", strong("GRN Status"),": GRN status indicates the extent to which a tissue GRN is established in the training and query samples.
-#      The raw GRN status is computed as the mean z-score of all genes in a tissue GRN, weighted by their importance to the associated tissue classifier.
-#      The raw GRN status is then normalized to the mean raw GRN status of the training data samples of the given tissue.
-#      Error bars represent mean ± 1 s.d."),
-#    p("3) ", strong("Transcription Factor Scores"),": The transcriptional regulators of the tissue GRN are shown on the y axis,
-#      with the Network Influence Score (NIS) of each regulator on the x axis.
-#      The NIS prioritizes transcription factors (TFs) such that their experimental perturbation is predicted to improve the target tissue classification,
-#      with", strong("negative scores suggesting that upregulation of a given TF's expression is needed to achieve the target cell type, and positive scores suggesting that downregulation is needed."),
-#      "The NIS of a TF is computed based on three components:
-#      The first component is the extent to which the TF is dysregulated as compared with its expected value in the target tissue type.
-#      The second component is the number of predicted targets of the TF. The third component is the extent to which the target genes are dysregulated."),
-#    
-#    #h3("Protocol"),
-#    #p("Step 1: "),
-#    hr(),
-#    
-#    sidebarLayout(
-#       sidebarPanel(h4("Uploading your inputs"),
-#                    selectInput(inputId="actionChoice", label="What do you want to do?",
-#                                choices = c("CellNet analysis", "Browse reference data"),
-#                                selected = "CellNet"),
-#                    uiOutput(outputId = "appOptions"),
-#                    actionButton(inputId = "submit", label= "Submit"),
-#                    width=3),
-#       
-#       mainPanel(
-#          h3("CellNet Results"),
-#          hr(),
-#          #shinyjs for hidden, shinyWidgets for progressBar
-#          hidden(div(id="progressDiv", progressBar(id = "progress", value = 0, total = 100, status = "info",
-#                                                   display_pct = TRUE, striped = TRUE, title = "Progress..."))),
-#          tabsetPanel(type = "tabs",
-#                      tabPanel("Classification",
-#                               br(),
-#                               hidden(div(id="classDiv",
-#                                          shinycssloaders::withSpinner(
-#                                             plotlyOutput(outputId="classHm", width="900px", height="500px"),
-#                                             type=7, color = "#9A50BD"),
-#                                          br(),
-#                                          textOutput("engineeredDescrip"),
-#                                          br()
-#                               )
-#                               ),
-#                               hidden(div(id="engineeredRefClassDiv",
-#                                          shinycssloaders::withSpinner(
-#                                             plotlyOutput("engineeredRef", width="900px", height="1200px"),
-#                                             type=7, color = "#9A50BD"),
-#                                          br()
-#                               )
-#                               )
-#                               
-#                      ),
-#                      tabPanel("GRN Status",
-#                               br(),
-#                               # hidden(div(id="grnStatDiv",
-#                               #            shinycssloaders::withSpinner(plotOutput("GRNstatus", height="4000px"), type=7, color = "#9A50BD")))
-#                               # ),
-#                               hidden(div(id="grnStatDiv",
-#                                          shinycssloaders::withSpinner(
-#                                             plotlyOutput(outputId = "GRNstatus", height="3000px", width="900px"),
-#                                             type=7, color = "#9A50BD")
-#                               ))
-#                      ),
-#                      tabPanel("Network Scores",
-#                               br(),
-#                               hidden(div(id="nisDiv",
-#                                          shinycssloaders::withSpinner(
-#                                             plotlyOutput(outputId="NIS", height="4000px", width="900px"),
-#                                             type=7, color = "#9A50BD")
-#                               )
-#                               ),
-#                               hidden(div(id="nisDiv2",
-#                                          textOutput("noNIS")
-#                               )
-#                               )
-#                      ),
-#                      hidden(div(id="validat_plots",
-#                                 tabPanel("New Training Validation",
-#                                          h4("Newly trained classifier performance"),
-#                                          textOutput("iGenes"),
-#                                          plotOutput("newTrainHm"),
-#                                          br(),
-#                                          plotOutput("newTrainPR"))))
-#          ),
-#          width=9
-#       )
-#    )
-#    )
+results_panel <- tagList(
+  use_busy_spinner(spin_id = "overall_spinner", position = "top-right", margins = c(20, 20),
+                   spin = "bounce", color = "#9A50BD"),
+  #shinyjs for hidden, shinyWidgets for progressBar
+  hidden(div(id = "progressDiv", progressBar(id = "progress", value = 0, total = 100, status = "info",
+                                             display_pct = TRUE, striped = FALSE, title = "Progress..."))),
+  tabsetPanel(id = "analysis_tabs", type = "tabs",
+              tabPanel(title = "Classification",
+                       value = "classification",
+                       div(id = "introDiv", class = "text-muted py-4",
+                           p("Upload your sample metadata table and expression matrix, choose the target cell/tissue type, and click Submit. Results will appear here."),
+                           p("New to PACNet? See ", tags$b("Help"), " for file formats and example data you can try.")),
+                       br(),
+                       hidden(downloadButton(outputId = "classDownload", label = "Download classification results")),
+                       hidden(div(id = "classDiv",
+                                  shinycssloaders::withSpinner(
+                                    plotlyOutput(outputId = "classHm", width = "900px", height = "1200px"),
+                                    type = 7, color = "#9A50BD"),
+                                  br(),
+                                  textOutput("engineeredDescrip"),
+                                  br()
+                       )),
+                       hidden(div(id = "engineeredRefClassDiv",
+                                  shinycssloaders::withSpinner(
+                                    plotlyOutput("engineeredRef", width = "900px", height = "1500px"),
+                                    type = 7, color = "#9A50BD"),
+                                  br()
+                       ))
+              ),
+              tabPanel(title = "NIS",
+                       value = "networkScores",
+                       br(),
+                       hidden(downloadButton(outputId = "nisDownload", label = "Download Network Influence Scores for all TFs")),
+                       br(),
+                       hidden(div(id = "nisDiv",
+                                  shinycssloaders::withSpinner(
+                                    plotlyOutput(outputId = "NIS", height = "4000px", width = "900px"),
+                                    type = 7, color = "#9A50BD")
+                       )),
+                       hidden(div(id = "nisDiv2",
+                                  textOutput("noNIS")
+                       ))
+              ),
+              tabPanel(title = "New Training Validation",
+                       value = "newTrainingValidation",
+                       h4("Newly trained classifier performance"),
+                       textOutput("iGenes"),
+                       shinycssloaders::withSpinner(
+                         plotOutput("newTrainHm", width = "auto", height = "auto"),
+                         type = 7, color = "#9A50BD"),
+                       br(),
+                       shinycssloaders::withSpinner(
+                         plotOutput("newTrainPR", width = "auto", height = "auto"),
+                         type = 7, color = "#9A50BD"))
+  )
+)
 
-htmlTemplate("www/index.html",
-             cellNetApp = tagList(plotly_page_deps, sidebarLayout(
-                            sidebarPanel(h4("Uploading your inputs"),
-                                         selectInput(inputId="actionChoice", label="What do you want to do?",
-                                                     choices = c("CellNet analysis", "Browse reference data"),
-                                                     selected = "CellNet"),
-                                         uiOutput(outputId = "appOptions"),
-                                         actionButton(inputId = "submit", label= "Submit"),
-                                         width=3),
-                            
-                            mainPanel(
-                               h3("CellNet Results"),
-                               hr(),
-                               use_busy_spinner(spin_id = "overall_spinner", position = "top-right", margins = c(20, 20),
-                                                spin = "bounce", color="#9A50BD"),
-                               #shinyjs for hidden, shinyWidgets for progressBar
-                               hidden(div(id="progressDiv", progressBar(id = "progress", value = 0, total = 100, status = "info",
-                                                                        display_pct = TRUE, striped = FALSE, title = "Progress..."))),
-                               tabsetPanel(id="analysis_tabs", type = "tabs",
-                                           tabPanel(title="Classification",
-                                                    value="classification",
-                                                    textOutput="classification",
-                                                    br(),
-                                                    hidden(downloadButton(outputId="classDownload", label="Download classification results")),
-                                                    hidden(div(id="classDiv",
-                                                                  shinycssloaders::withSpinner(
-                                                                     plotlyOutput(outputId="classHm", width="900px", height="1200px"),
-                                                                     type=7, color = "#9A50BD"),
-                                                                  br(),
-                                                                  textOutput("engineeredDescrip"),
-                                                                  br()
-                                                    )),
-                                                    hidden(div(id="engineeredRefClassDiv",
-                                                                  shinycssloaders::withSpinner(
-                                                                     plotlyOutput("engineeredRef", width="900px", height="1500px"),
-                                                                     type=7, color = "#9A50BD"),
-                                                                  br()
-                                                    ))
-                                                    
-                                           ),
-                                           # tabPanel(title="GRN Status",
-                                           #          value="grnStatus",
-                                           #          textOutput="grnStatus",
-                                           #          br(),
-                                           #          hidden(downloadButton(outputId="gsDownload", label="Download GRN Status Results")),
-                                           #          br(),
-                                           #          # hidden(div(id="grnStatDiv",
-                                           #          #            shinycssloaders::withSpinner(plotOutput("GRNstatus", height="4000px"), type=7, color = "#9A50BD")))
-                                           #          # ),
-                                           #          hidden(div(id="grnStatDiv",
-                                           #                     hidden(div(id="grnBrowseDiv", 
-                                           #                                uiOutput(outputId = "browseGRN"),
-                                           #                                actionButton(inputId = "submitGRN", label= "Go"),
-                                           #                                shinycssloaders::withSpinner(
-                                           #                                   plotlyOutput(outputId = "GRNstatusBrowse", height="4000px", width="900px"),
-                                           #                                   type=7, color = "#9A50BD"
-                                           #                                )
-                                           #                                )),
-                                           #                     hidden(div(id="GRNstatQueryDiv", 
-                                           #                                shinycssloaders::withSpinner(
-                                           #                                 plotlyOutput(outputId = "GRNstatus", height="3000px", width="900px"),
-                                           #                                 type=7, color = "#9A50BD"
-                                           #                                 )
-                                           #                                ))
-                                           #          ))
-                                           # ),
-                                           tabPanel(title="NIS",
-                                                    value="networkScores",
-                                                    textOutput="networkScores",
-                                                    br(),
-                                                    hidden(downloadButton(outputId="nisDownload", label="Download Network Influence Scores for all TFs")),
-                                                    br(),
-                                                    hidden(div(id="nisDiv",
-                                                               shinycssloaders::withSpinner(
-                                                                  plotlyOutput(outputId="NIS", height="4000px", width="900px"),
-                                                                  type=7, color = "#9A50BD")
-                                                    )),
-                                                    hidden(div(id="nisDiv2",
-                                                               textOutput("noNIS")
-                                                    ))
-                                           ),
-                                           tabPanel(title="New Training Validation",
-                                                    value="newTrainingValidation",
-                                                    textOutput="newTrainingValidation",
-                                                    h4("Newly trained classifier performance"),
-                                                    textOutput("iGenes"),
-                                                    shinycssloaders::withSpinner(
-                                                       plotOutput("newTrainHm", width="auto", height="auto"),
-                                                       type=7, color = "#9A50BD"),
-                                                    br(),
-                                                    shinycssloaders::withSpinner(
-                                                       plotOutput("newTrainPR", width="auto", height="auto"),
-                                                       type=7, color = "#9A50BD"))
-                               ), width=9
-                            )
-                         ))
-             )
+doc_page <- function(md_file) {
+  div(class = "container py-4 doc-page", style = "max-width: 900px;",
+      shiny::markdown(readLines(md_file, encoding = "UTF-8", warn = FALSE)))
+}
+
+page_footer <- div(
+  class = "text-center text-muted small py-3 border-top",
+  "© 2019–2026 ",
+  tags$a(href = "https://cahanlab.org/", target = "_blank", "Cahan Lab"),
+  " · ",
+  tags$a(href = "https://github.com/CahanLab/PACNet", target = "_blank", "GitHub"),
+  " · ",
+  tags$a(href = "mailto:patrick.cahan@jhmi.edu", "Contact")
+)
+
+page_navbar(
+  title = tags$span(tags$img(src = "images/PACNet_icon.jpg", height = "32", class = "me-2",
+                             alt = "PACNet logo"),
+                    "PACNet"),
+  window_title = "PACNet",
+  # Pages flow normally so long Help/About text scrolls and the footer follows it.
+  fillable = FALSE,
+  theme = bs_theme(version = 5, bootswatch = "cosmo", primary = "#9A50BD"),
+  header = tagList(page_head, useShinyjs(), plotly_page_deps),
+  footer = page_footer,
+  nav_panel("Analyze",
+            layout_sidebar(
+              sidebar = sidebar(title = "Inputs", width = 330, inputs_panel),
+              results_panel)),
+  nav_panel("Help", doc_page("help.md")),
+  nav_panel("About", doc_page("about.md")),
+  nav_spacer(),
+  nav_item(tags$a(shiny::icon("flask"), "Cahan Lab", href = "https://cahanlab.org/", target = "_blank")),
+  nav_item(tags$a(shiny::icon("github"), "GitHub", href = "https://github.com/CahanLab/PACNet",
+                  target = "_blank"))
+)

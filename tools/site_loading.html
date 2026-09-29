@@ -1,0 +1,25 @@
+<!-- Shown under Shinylive's startup spinner; removed once the PACNet app has rendered. -->
+<div id="pacnet-loading" role="status"
+     style="position: fixed; left: 0; right: 0; top: 58%; z-index: 10; padding: 0 16px;
+            text-align: center; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color: #444; pointer-events: none;">
+  <div style="font-size: 1.4rem; font-weight: 600; color: #9A50BD;">Loading PACNet&hellip;</div>
+  <p style="max-width: 34rem; margin: 0.5rem auto 0; line-height: 1.5;">
+    PACNet runs entirely in your browser. On your first visit it downloads the R runtime and
+    analysis packages, which takes about a minute; later visits are faster. The app opens
+    automatically once everything has loaded.
+  </p>
+</div>
+<script>
+  (function () {
+    var notice = document.getElementById("pacnet-loading");
+    var timer = setInterval(function () {
+      var frame = document.querySelector("#root iframe");
+      var doc = frame && frame.contentDocument;
+      if (doc && doc.querySelector(".navbar")) {
+        notice.remove();
+        clearInterval(timer);
+      }
+    }, 500);
+  })();
+</script>

@@ -37,7 +37,7 @@ missing <- setdiff(fns, names(chunks))
 if (length(missing)) stop("Not found in ", ccn_dir, ": ", paste(missing, collapse = ", "))
 
 header <- c(
-  "# Vendored from https://github.com/pcahan1/cancerCellNet (MIT License),",
+  "# Vendored from https://github.com/CahanLab/cancerCellNet (MIT License),",
   paste0("# commit ", sha, ", by tools/vendor_cnlib.R."),
   "# Only the functions the PACNet web app calls are included. Local changes",
   "# are marked with \"# PACNet-web:\" comments.",

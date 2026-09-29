@@ -109,3 +109,15 @@ test_that("a classification failure is reported once and stops the analysis", {
   expect_match(seen$alerts, "Something went wrong with classification of your samples")
   expect_gte(seen$hidden, 1)
 })
+
+test_that("server-rendered inputs carry tooltips", {
+  shiny::testServer(server_fn, {
+    session$setInputs(actionChoice = "CellNet analysis", species = "Human")
+    opts <- output$appOptions$html
+    expect_gte(lengths(regmatches(opts, gregexpr("<bslib-tooltip", opts, fixed = TRUE))), 3)
+    expect_match(opts, "sample_name", fixed = TRUE)
+    expect_match(output$tissueType$html, "<bslib-tooltip", fixed = TRUE)
+    session$setInputs(actionChoice = "Browse reference data")
+    expect_match(output$tissueTypeRef$html, "<bslib-tooltip", fixed = TRUE)
+  })
+})

@@ -2,6 +2,9 @@
 # Packages and helper sources are loaded in global.R.
 
 server <- function(input, output, session) {
+
+  # The validation tab only applies after a retrain; hide it until then.
+  hideTab(inputId="analysis_tabs", target="newTrainingValidation")
   
   ########################################################################################
   ##### FUNCTION DEFINITIONS #####
@@ -248,16 +251,16 @@ server <- function(input, output, session) {
   output$appOptions <- renderUI({
     if (actionChoice() == "Browse reference data") {
       tagList(
-        selectInput(inputId="species", label="Species", choices = c("Human")),#, "Mouse")),
+        selectInput(inputId="species", label=label_tip("Species", TIPS$species), choices = c("Human")),#, "Mouse")),
         uiOutput("tissueTypeRef")
       )
     } else {
       tagList(
-        fileInput(inputId = "sampTabUploadCSV", label= "Upload .csv sample metadata table", 
+        fileInput(inputId = "sampTabUploadCSV", label= label_tip("Upload .csv sample metadata table", TIPS$sampTab), 
                   accept = ".csv", multiple=FALSE),
-        fileInput(inputId = "expMatUpload", label = "Upload .csv expression matrix", 
+        fileInput(inputId = "expMatUpload", label = label_tip("Upload .csv expression matrix", TIPS$expMat), 
                   accept = ".csv", multiple=FALSE),
-        selectInput(inputId="species", label="Species", choices = c("Human")), #, "Mouse")),
+        selectInput(inputId="species", label=label_tip("Species", TIPS$species), choices = c("Human")), #, "Mouse")),
         uiOutput("tissueType")
       )
     }
@@ -296,7 +299,7 @@ server <- function(input, output, session) {
   
   output$tissueType <- renderUI({
     if (species() == "Human") {
-      selectInput(inputId = "tissueType", label = "Target Cell/Tissue Type",
+      selectInput(inputId = "tissueType", label = label_tip("Target Cell/Tissue Type", TIPS$tissueType),
                   choices = c("heart","hspc","intestine_colon",
                               "liver","lung","neuron","skeletal_muscle",
                               "esc","endothelial_cell","fibroblast","kidney",
@@ -320,7 +323,7 @@ server <- function(input, output, session) {
   
   output$tissueTypeRef <- renderUI({
     if (species() == "Human") {
-      selectInput(inputId = "tissueTypeRef", label = "Target Cell/Tissue Type",
+      selectInput(inputId = "tissueTypeRef", label = label_tip("Reference panel", TIPS$tissueTypeRef),
                   choices = c("heart","hspc","intestine_colon",
                               "liver","lung","neuron","skeletal_muscle"
                   ))
@@ -380,6 +383,7 @@ server <- function(input, output, session) {
     tryCatch({
       hideTab(inputId="analysis_tabs", target="newTrainingValidation")
       shinyjs::show("progressDiv") #shinyjs
+      shinyjs::hide("introDiv")
       shinyjs::hide("classDownload")
       # shinyjs::hide("gsDownload")
       shinyjs::hide("nisDownload")

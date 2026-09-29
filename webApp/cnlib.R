@@ -1,4 +1,4 @@
-# Vendored from https://github.com/pcahan1/cancerCellNet (MIT License),
+# Vendored from https://github.com/CahanLab/cancerCellNet (MIT License),
 # commit dc29a8e7982461416a12fd3372bb844d35bd0ee0, by tools/vendor_cnlib.R.
 # Only the functions the PACNet web app calls are included. Local changes
 # are marked with "# PACNet-web:" comments.
