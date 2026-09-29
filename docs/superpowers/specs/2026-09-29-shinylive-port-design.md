@@ -12,7 +12,7 @@ with `shiny::runApp()` / `shiny::runGitHub()` for anyone with R installed.
 
 ### Success criteria
 
-1. `https://pcahan1.github.io/PACNet/` serves the app; no server-side compute.
+1. `https://cahanlab.github.io/PACNet/` serves the app; no server-side compute.
 2. Feature parity with the current app:
    - "CellNet analysis": upload metadata + expression CSVs, pick tissue,
      classification heatmap, engineered-reference comparison heatmap,
@@ -102,7 +102,7 @@ returns the object stored in `name` (an `.rds` file name).
   otherwise it derives the site root from the webR worker's own URL
   (`webr::eval_js("self.location.href")`, stripping `/shinylive/...`) and
   appends `data/`. This makes the same export work at
-  `pcahan1.github.io/PACNet/`, on a fork, and on a local static server.
+  `cahanlab.github.io/PACNet/`, on a fork, and on a local static server.
 - Download failures raise an R error with the URL in the message; the server
   shows it via the existing `shinyalert` error path.
 

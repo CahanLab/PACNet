@@ -16,7 +16,7 @@ All the code below is also available in a single R file, `agnosticCellNet_exampl
 
 #### See also
 
-PACNet is also available as a [web application](https://pcahan1.github.io/PACNet/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods. The web app runs entirely in your browser (nothing is uploaded to a server); the first visit downloads the R runtime and packages, which takes a minute or so. See [Running the web app locally](#webapp-local) to run it in your own R session instead.
+PACNet is also available as a [web application](https://cahanlab.github.io/PACNet/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods. The web app runs entirely in your browser (nothing is uploaded to a server); the first visit downloads the R runtime and packages, which takes a minute or so. See [Running the web app locally](#webapp-local) to run it in your own R session instead.
 
 View our PACNet publication [here](https://doi.org/10.1016/j.stemcr.2023.06.008).
 
@@ -45,7 +45,7 @@ With R (>= 4.4) installed:
 install.packages(c("shiny", "shinythemes", "shinycssloaders", "shinyWidgets", "shinyjs",
                    "shinyalert", "shinybusy", "ggplot2", "gridExtra", "RColorBrewer",
                    "pheatmap", "plotly", "dplyr", "randomForest"))
-shiny::runGitHub("PACNet", "pcahan1", subdir = "webApp")
+shiny::runGitHub("PACNet", "CahanLab", subdir = "webApp")
 ```
 
 The reference data the app uses is in `data/` (built from the original objects by `tools/make_slim_data.R`). Developers: `Rscript -e 'testthat::test_dir("tests/testthat")'` runs the regression tests (`PACNET_SLOW=1` includes the retraining test); `tools/build_site.sh` builds the static site that `.github/workflows/pages.yml` deploys.
