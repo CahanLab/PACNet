@@ -16,7 +16,7 @@ All the code below is also available in a single R file, `agnosticCellNet_exampl
 
 #### See also
 
-PACNet is also available as a [web application](http://cahanlab.org/resources/agnosticCellNet_web/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods.
+PACNet is also available as a [web application](https://pcahan1.github.io/PACNet/), which takes as input an expression matrix (counts, TPM, or FPKM) and sample meta-data. The application performs CellNet analysis. Additionally, this tool includes analysis of many state-of-the-art differentiation protocols so that you can benchmark your results against those commonly used methods. The web app runs entirely in your browser (nothing is uploaded to a server); the first visit downloads the R runtime and packages, which takes a minute or so. See [Running the web app locally](#webapp-local) to run it in your own R session instead.
 
 View our PACNet preprint [here](https://www.biorxiv.org/content/10.1101/2022.09.07.506886v1).
 
@@ -36,6 +36,19 @@ For previous versions of CellNet, please visit the original [CellNet repository]
 
 
 ---
+
+### Running the web app locally <a name="webapp-local"></a>
+
+With R (>= 4.4) installed:
+
+```r
+install.packages(c("shiny", "shinythemes", "shinycssloaders", "shinyWidgets", "shinyjs",
+                   "shinyalert", "shinybusy", "ggplot2", "gridExtra", "RColorBrewer",
+                   "pheatmap", "plotly", "dplyr", "randomForest"))
+shiny::runGitHub("PACNet", "pcahan1", subdir = "webApp")
+```
+
+The reference data the app uses is in `data/` (built from the original objects by `tools/make_slim_data.R`). Developers: `Rscript -e 'testthat::test_dir("tests/testthat")'` runs the regression tests (`PACNET_SLOW=1` includes the retraining test); `tools/build_site.sh` builds the static site that `.github/workflows/pages.yml` deploys.
 
 ### Data <a name="data"></a>
 

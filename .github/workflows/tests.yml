@@ -1,0 +1,39 @@
+name: Web app tests
+
+on:
+  push:
+    paths: ["webApp/**", "data/**", "tests/**", ".github/workflows/tests.yml"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PACNET_SLOW: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::testthat
+            any::withr
+            any::codetools
+            any::shiny
+            any::shinythemes
+            any::shinycssloaders
+            any::shinyWidgets
+            any::shinyjs
+            any::shinyalert
+            any::shinybusy
+            any::ggplot2
+            any::gridExtra
+            any::RColorBrewer
+            any::pheatmap
+            any::plotly
+            any::dplyr
+            any::randomForest
+      - run: Rscript -e 'testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
