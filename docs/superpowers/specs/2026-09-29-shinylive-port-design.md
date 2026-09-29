@@ -126,7 +126,7 @@ Pure functions, no Shiny calls, used by both `server.R` and the tests:
 | Function | Purpose |
 |---|---|
 | `normalize_query(expDat, sampTab)` | reorder columns to `sampTab$sample_name`, `downSampleW(1e5)`, `log1p` |
-| `load_classifier(tissue)` | classifier + iGenes; `none_of_the_above` handled |
+| `load_classifier(tissue)` | classifier + iGenes; groups `O` and `none_of_the_above` use the none_of_the_above files |
 | `needs_retrain(broadReturn, queryExp)` | `!all(cgenes %in% rownames(queryExp))` |
 | `retrain_classifier(queryExp, iGenes)` | loads `Hs_expTrain_sig4`/`Hs_stTrain`, splits (seed 39), frees the full matrix before training, trains with the current parameters, returns `list(broadReturn, classMatrix, grps, assessment)` for the validation tab |
 | `classify(broadReturn, expDat, nrand)` | `broadClass_predict` wrapper |
@@ -158,15 +158,21 @@ are `saveRDS(..., compress = "xz")`.
 | `<T>_top_TF_display_order.rds` | same | none | yes |
 | `<T>_engineeredRef_ranks.rds` | `<T>_engineeredRef_normalized_expDat_all.rda` | columns aligned to sample table; integer rank within each sample (`ties.method = "min"`) | yes: classification uses only within-sample gene comparisons |
 | `<T>_nis.rds` | `<T>_grnAll.rda` + `<T>_trainNormParam.rda` | `list(tfTargets = ctGRNs$tfTargets[[T]], netGenes = names(ctGRNs$geneLists[[T]]), tVals = list(mean, sd) for netGenes)` | yes: the only fields NIS reads |
+| `<O>_nis.rds` | `none_of_the_above_grnAll.rda` + `none_of_the_above_trainNormParam.rda` | same slim structure, sub-network `O` | yes |
 | `none_of_the_above_broadClassifier100.rds`, `..._studies_iGenes.rds` | same | none | yes |
 | `Hs_stTrain.rds` | `Hs_stTrain_Jun-20-2017.rda` | none | yes |
 | `Hs_expTrain_sig4.rds` | `Hs_expTrain_Jun-20-2017.rda` | `signif(x, 4)` | no (user-approved) |
 
-`T` ∈ {heart, hspc, intestine_colon, liver, lung, neuron, skeletal_muscle}.
+The app's tissue menu has three groups, and the files each one uses:
 
-Dropped: `*_GRN_statusQuery` (loaded in browse mode but never displayed),
-`none_of_the_above_grnAll` and `none_of_the_above_trainNormParam` (NIS is
-skipped for that choice).
+| Group | Members | Classifier / iGenes | Engineered ref | NIS |
+|---|---|---|---|---|
+| Panel tissues `T` | heart, hspc, intestine_colon, liver, lung, neuron, skeletal_muscle | `<T>_*` | `<T>_*` | `<T>_nis.rds` |
+| Other tissues `O` | esc, endothelial_cell, fibroblast, kidney, b_cell, t_cell, monocyte_macrophage | `none_of_the_above_*` | none | `<O>_nis.rds` (from the none_of_the_above GRN) |
+| `none_of_the_above` | – | `none_of_the_above_*` | none | skipped |
+
+Dropped: `*_GRN_statusQuery` (loaded in browse mode but never displayed), and
+the full `grnAll`/`trainNormParam` objects (replaced by the slim NIS files).
 
 Expected sizes: ~48 MB total excluding `expTrain`, plus 49 MB for
 `Hs_expTrain_sig4.rds`. Largest per-tissue file ~14 MB.
@@ -180,8 +186,10 @@ double-precision reference data) on `example_data/` and saves:
 - per tissue (7 + `none_of_the_above`): query classification matrix (real
   sample columns only; random-profile columns are stochastic);
 - per tissue (7): reference-panel classification matrix (real columns);
-- per tissue (7): NIS matrix, plus one extra run with 25 network genes
-  removed from `iGenes` to exercise the subsetting path;
+- per tissue (all 14 in groups `T` and `O`): NIS matrix computed exactly as
+  the current server does (group `O` uses the none_of_the_above GRN with
+  `subnet = O`), plus one extra liver run with 25 network genes removed
+  from `iGenes` to exercise the subsetting path;
 - one liver retrain from the original `expTrain` (query + reference
   classification, real columns).
 
