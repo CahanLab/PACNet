@@ -23,9 +23,11 @@ with `shiny::runApp()` / `shiny::runGitHub()` for anyone with R installed.
    reference-panel samples and for NIS, for every tissue (verified against
    golden outputs produced by the original code on the original data).
 4. The retraining path uses `expTrain` rounded to 4 significant digits.
-   Retrained results must agree with the original-data retrain on every
-   query top call; score differences stay within the random-forest
-   seed-to-seed noise measured in the spike (max |d| ~0.14).
+   With unrounded data the ported retrain reproduces the original exactly;
+   with rounded data, retrained query top calls must agree with the
+   original-data retrain wherever the original's top-two margin is at
+   least 0.05 (a near-tie may flip), and score differences stay within the
+   random-forest seed-to-seed noise measured in the spike (max |d| < 0.15).
 5. `shiny::runApp("webApp")` works in native R with only CRAN packages; the
    CellNet and cancerCellNet packages are no longer required.
 6. The AWS deploy script is removed and the README points to the new site.

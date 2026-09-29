@@ -10,5 +10,12 @@ example_file <- function(f) file.path(repo_root, "example_data", f)
 golden <- function(name) readRDS(file.path(repo_root, "tests", "golden", paste0(name, ".rds")))
 options(pacnet.data_dir = file.path(repo_root, "data"))
 
-source(app_file("cnlib.R"))
-source(app_file("data_access.R"))
+for (f in c("cnlib.R", "data_access.R", "pacnet_utils.R", "pipeline.R")) source(app_file(f))
+
+example_query <- function() {
+  st <- read.csv(example_file("example_sample_metadata_table.csv"), stringsAsFactors = FALSE)
+  rownames(st) <- st$sample_name
+  list(sampTab = st,
+       exp = normalize_query(read_expression_csv(example_file("example_counts_matrix.csv")), st))
+}
+real_cols <- function(m, cols) m[, cols, drop = FALSE]
