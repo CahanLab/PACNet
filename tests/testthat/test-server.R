@@ -38,3 +38,18 @@ test_that("browse mode renders a reference panel description", {
     expect_no_error(output$engineeredRef)
   })
 })
+
+test_that("a missing reference file is reported to the user instead of hanging", {
+  tmp <- withr::local_tempdir()
+  for (f in setdiff(list.files(file.path(repo_root, "data")), "lung_engineeredRef_ranks.rds")) {
+    file.symlink(file.path(repo_root, "data", f), file.path(tmp, f))
+  }
+  withr::local_options(pacnet.data_dir = tmp)
+  shown <- NULL
+  local_mocked_bindings(shinyalert = function(title, text = "", ...) shown <<- text, .package = "shinyalert")
+  shiny::testServer(server_fn, {
+    session$setInputs(actionChoice = "Browse reference data", species = "Human", tissueTypeRef = "lung")
+    expect_no_error(session$setInputs(submit = 1))
+  })
+  expect_match(shown, "lung_engineeredRef_ranks.rds", fixed = TRUE)
+})

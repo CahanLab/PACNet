@@ -25,3 +25,9 @@ source("pipeline.R")
 source("plotting.R")
 
 options(shiny.maxRequestSize = 50*1024^2)
+
+# plotly's JavaScript, loaded with the page (see ui.R). Under Shinylive,
+# plotly widgets arriving in the same update otherwise rendered before the
+# dynamically injected plotly.js had loaded ("Plotly is not defined").
+plotly_page_deps <- htmltools::renderTags(
+  plot_ly(x = 1, y = 1, type = "scatter", mode = "markers"))$dependencies

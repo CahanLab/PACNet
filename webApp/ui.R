@@ -125,7 +125,7 @@
 #    )
 
 htmlTemplate("www/index.html",
-             cellNetApp = sidebarLayout(
+             cellNetApp = tagList(plotly_page_deps, sidebarLayout(
                             sidebarPanel(h4("Uploading your inputs"),
                                          selectInput(inputId="actionChoice", label="What do you want to do?",
                                                      choices = c("CellNet analysis", "Browse reference data"),
@@ -219,5 +219,5 @@ htmlTemplate("www/index.html",
                                                        type=7, color = "#9A50BD"))
                                ), width=9
                             )
-                         )
+                         ))
              )

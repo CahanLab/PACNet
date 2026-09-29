@@ -375,312 +375,319 @@ server <- function(input, output, session) {
   
   # Upon clicking submit:
   observeEvent(input$submit, {
-    hideTab(inputId="analysis_tabs", target="newTrainingValidation")
-    shinyjs::show("progressDiv") #shinyjs
-    shinyjs::hide("classDownload")
-    # shinyjs::hide("gsDownload")
-    shinyjs::hide("nisDownload")
-    
-    show_spinner(spin_id = "overall_spinner", session=session)
-    
-    ###################################
-    # For CellNet analysis of user data
-    
-    if (actionChoice() == "CellNet analysis") {
-      if (is.null(querySampTab()) || is.null(queryExpDat())) {
-        shinyalert("Oops!", "Please upload proper sample metadata table and expression matrix.", type = "error")
-        return(NULL)
-      }
-      
-      if (!("sample_name" %in% colnames(querySampTab()))) {
-        shinyalert("Oops!", "Metadata table missing sample_name column. 
-                       Please make sure columns are named correctly.", type = "error")
-        return(NULL)
-      }
-      
-      if (!("description1" %in% colnames(querySampTab()))) {
-        shinyalert("Oops!", "Metadata table missing description1 column. 
-                       Please make sure columns are named correctly.", type = "error")
-        return(NULL)
-      }
-      
-      if (!all(colnames(queryExpDat()) %in% querySampTab()[,"sample_name"])) {
-        shinyalert("Oops!", "Column names of expression matrix DO NOT match sample_name column of metadata table. 
-                       Please re-submit correctly formatted tables and try again.", type = "error")
-        return(NULL)
-      }
-      
-      # shinyjs::hide("grnBrowseDiv")
-      shinyjs::hide("nisDiv2")
-      #shinyjs::hide("validat_plots")
+    # Any unexpected error (e.g. reference data that cannot be loaded) must
+    # reach the user; otherwise the busy spinner keeps spinning forever.
+    tryCatch({
       hideTab(inputId="analysis_tabs", target="newTrainingValidation")
+      shinyjs::show("progressDiv") #shinyjs
+      shinyjs::hide("classDownload")
+      # shinyjs::hide("gsDownload")
+      shinyjs::hide("nisDownload")
       
-      queryExpDat_new <- normalize_query(queryExpDat(), querySampTab())
-
-      updateProgressBar(session = session, id = "progress", title = "Loaded in query data...",
-                        value = 10, total = 100)
-
-      # Load TISSUE-SPECIFIC classifier and iGenes (other tissues use none_of_the_above)
-      clf <- load_classifier(tissueType())
-      broadReturn <- clf$broadReturn
-      iGenes <- clf$iGenes
-
-      # Check if retraining is necessary
-      if (!needs_retrain(broadReturn, queryExpDat_new)) {
-        updateProgressBar(session = session, id = "progress",
-                          title = "No need to retrain! Starting classification...",
-                          value = 35, total = 100)
-
-        output$iGenes <- renderText({
-          "Retraining not necessary for this study!"
-        })
-        outputOptions(output, "iGenes", suspendWhenHidden = FALSE)
-      } else {
-        updateProgressBar(session = session, id = "progress",
-                          title = "Retraining classifier based on intersecting genes...This may take several minutes",
-                          value = 20, total = 100)
-        iGenes <- intersect(iGenes, rownames(queryExpDat_new))
-
-        if (length(iGenes) == 0) {
-          shinyalert("Error!", "Your expression matrix does not share any genes with the training data.
-                          Please make sure the row names of your expression matrix are GENE SYMBOLS.", type="error")
-        } else if (length(iGenes) < 1000) {
-          shinyalert("Warning!", "Your expression matrix shares fewer than 1000 genes with the training data.
-                          The most likely cause is that the row names of your expression matrix are not GENE SYMBOLS.
-                          If you have made sure that your row names are properly gene symbols and would like to proceed,
-                          please note that a classifier trained on fewer than 1000 genes may not be reliable.
-                          Check out the New Training Validation tab for information on the classifier's performance.",
-                     type="warning",
-                     confirmButtonText="I understand")
-        }
-        showTab(inputId="analysis_tabs", target="newTrainingValidation")
-        retrained <- tryCatch(
-          retrain_classifier(queryExpDat_new, iGenes),
-          error=function(condition) {
-            shinyalert("Error", paste0("Something went wrong with retraining: ",
-                                       condition), type="error")
-            return(NULL)
-          }
-        )
-        if (is.null(retrained)) {
-          hide_spinner(spin_id = "overall_spinner", session=session)
+      show_spinner(spin_id = "overall_spinner", session=session)
+      
+      ###################################
+      # For CellNet analysis of user data
+      
+      if (actionChoice() == "CellNet analysis") {
+        if (is.null(querySampTab()) || is.null(queryExpDat())) {
+          shinyalert("Oops!", "Please upload proper sample metadata table and expression matrix.", type = "error")
           return(NULL)
         }
-        broadReturn <- retrained$broadReturn
-        show_validation(retrained)
-        updateProgressBar(session = session, id = "progress",
-                          title = "Done retraining! Starting classification...",
-                          value = 40, total = 100)
-      }
+        
+        if (!("sample_name" %in% colnames(querySampTab()))) {
+          shinyalert("Oops!", "Metadata table missing sample_name column. 
+                         Please make sure columns are named correctly.", type = "error")
+          return(NULL)
+        }
+        
+        if (!("description1" %in% colnames(querySampTab()))) {
+          shinyalert("Oops!", "Metadata table missing description1 column. 
+                         Please make sure columns are named correctly.", type = "error")
+          return(NULL)
+        }
+        
+        if (!all(colnames(queryExpDat()) %in% querySampTab()[,"sample_name"])) {
+          shinyalert("Oops!", "Column names of expression matrix DO NOT match sample_name column of metadata table. 
+                         Please re-submit correctly formatted tables and try again.", type = "error")
+          return(NULL)
+        }
+        
+        # shinyjs::hide("grnBrowseDiv")
+        shinyjs::hide("nisDiv2")
+        #shinyjs::hide("validat_plots")
+        hideTab(inputId="analysis_tabs", target="newTrainingValidation")
+        
+        queryExpDat_new <- normalize_query(queryExpDat(), querySampTab())
 
-      # Load tissueType-specific engineered reference data
-      if (tissueType() %in% PANEL_TISSUES) {
-        ref <- load_engineered_ref(tissueType())
-        tissueTypeRefDat <- ref$expDat
-        tissueTypeRefSt <- ref$sampTab
-        tissueTypeTopTFs <- ref$topTFs
-      }
+        updateProgressBar(session = session, id = "progress", title = "Loaded in query data...",
+                          value = 10, total = 100)
 
-      classMatrixQuery <- classify(broadReturn, queryExpDat_new, nrand = 3)
-      
-      shinyjs::show("classDiv")
-      
-      ### Plot classification heatmap for user-inputted study
-      output$classHm <- renderPlotly({
-        tryCatch(
-          {
-            queryClassifier(classMatrixQuery, querySampTab(), groupBy="description1")
-          },
-          error=function(condition) {
-            shinyalert("Error", paste0("Something went wrong with classification of your samples: ",
-                                       condition), type="error")
+        # Load TISSUE-SPECIFIC classifier and iGenes (other tissues use none_of_the_above)
+        clf <- load_classifier(tissueType())
+        broadReturn <- clf$broadReturn
+        iGenes <- clf$iGenes
+
+        # Check if retraining is necessary
+        if (!needs_retrain(broadReturn, queryExpDat_new)) {
+          updateProgressBar(session = session, id = "progress",
+                            title = "No need to retrain! Starting classification...",
+                            value = 35, total = 100)
+
+          output$iGenes <- renderText({
+            "Retraining not necessary for this study!"
+          })
+          outputOptions(output, "iGenes", suspendWhenHidden = FALSE)
+        } else {
+          updateProgressBar(session = session, id = "progress",
+                            title = "Retraining classifier based on intersecting genes...This may take several minutes",
+                            value = 20, total = 100)
+          iGenes <- intersect(iGenes, rownames(queryExpDat_new))
+
+          if (length(iGenes) == 0) {
+            shinyalert("Error!", "Your expression matrix does not share any genes with the training data.
+                            Please make sure the row names of your expression matrix are GENE SYMBOLS.", type="error")
+          } else if (length(iGenes) < 1000) {
+            shinyalert("Warning!", "Your expression matrix shares fewer than 1000 genes with the training data.
+                            The most likely cause is that the row names of your expression matrix are not GENE SYMBOLS.
+                            If you have made sure that your row names are properly gene symbols and would like to proceed,
+                            please note that a classifier trained on fewer than 1000 genes may not be reliable.
+                            Check out the New Training Validation tab for information on the classifier's performance.",
+                       type="warning",
+                       confirmButtonText="I understand")
+          }
+          showTab(inputId="analysis_tabs", target="newTrainingValidation")
+          retrained <- tryCatch(
+            retrain_classifier(queryExpDat_new, iGenes),
+            error=function(condition) {
+              shinyalert("Error", paste0("Something went wrong with retraining: ",
+                                         condition), type="error")
+              return(NULL)
+            }
+          )
+          if (is.null(retrained)) {
+            hide_spinner(spin_id = "overall_spinner", session=session)
             return(NULL)
+          }
+          broadReturn <- retrained$broadReturn
+          show_validation(retrained)
+          updateProgressBar(session = session, id = "progress",
+                            title = "Done retraining! Starting classification...",
+                            value = 40, total = 100)
+        }
+
+        # Load tissueType-specific engineered reference data
+        if (tissueType() %in% PANEL_TISSUES) {
+          ref <- load_engineered_ref(tissueType())
+          tissueTypeRefDat <- ref$expDat
+          tissueTypeRefSt <- ref$sampTab
+          tissueTypeTopTFs <- ref$topTFs
+        }
+
+        classMatrixQuery <- classify(broadReturn, queryExpDat_new, nrand = 3)
+        
+        shinyjs::show("classDiv")
+        
+        ### Plot classification heatmap for user-inputted study
+        output$classHm <- renderPlotly({
+          tryCatch(
+            {
+              queryClassifier(classMatrixQuery, querySampTab(), groupBy="description1")
+            },
+            error=function(condition) {
+              shinyalert("Error", paste0("Something went wrong with classification of your samples: ",
+                                         condition), type="error")
+              return(NULL)
+            }
+          )
+          
+        })
+        outputOptions(output, "classHm", suspendWhenHidden = FALSE)
+        
+        
+        ### Plot classification heatmap for engineered reference studies
+        if(tissueType() %in% PANEL_TISSUES) {
+          shinyjs::show("engineeredRefClassDiv")
+          
+          output$engineeredDescrip <- renderText({
+            "How does your protocol compare to publicly available data from related studies? \n \n"   
+          })
+          
+          output$engineeredRef <- renderPlotly({
+            queryClassifierRef(broadReturn, tissueTypeRefSt, tissueTypeRefDat, groupBy="citation")
+          })
+          outputOptions(output, "engineeredRef", suspendWhenHidden = FALSE)
+          
+        } else {
+          shinyjs::hide("engineeredRefClassDiv")
+          # shinyjs::hide("nisDownload")
+          
+          output$engineeredDescrip <- renderText({
+            "Comparison to engineered reference samples unavailable for selected cell/tissue type."   
+          })
+          outputOptions(output, "engineeredDescrip", suspendWhenHidden = FALSE)
+        }
+        
+        output$classDownload <- downloadHandler(
+          filename = function() {
+            paste('classification_results_', Sys.Date(), '.csv', sep='')
+          },
+          content = function(con) {
+            write.csv(classMatrixQuery, con, quote=FALSE)
           }
         )
         
-      })
-      outputOptions(output, "classHm", suspendWhenHidden = FALSE)
-      
-      
-      ### Plot classification heatmap for engineered reference studies
-      if(tissueType() %in% PANEL_TISSUES) {
+        shinyjs::show("classDownload")
+        outputOptions(output, "classDownload", suspendWhenHidden = FALSE)
+        
+        # updateProgressBar(session = session, id = "progress", title="Now starting GRN analysis...",
+        #                   value = 50, total = 100)
+        
+        
+        #####
+        # NIS
+
+        updateProgressBar(session = session, id = "progress", title="Now analyzing transcriptional regulators...may take several minutes",
+                          value = 85, total = 100)
+
+        if(tissueType() != "none_of_the_above") {
+
+          TF_scores <- tryCatch(
+            run_nis(queryExpDat_new, querySampTab(), iGenes, tissueType()),
+            error=function(condition) {
+              shinyalert("Error", paste0("Something went wrong with NIS analysis of your samples: ",
+                                         condition), type="error")
+              return(NULL)
+            })
+
+          output$nisDownload <- downloadHandler(
+            filename = function() {
+              paste('network_results_', Sys.Date(), '.csv', sep='')
+            },
+            content = function(con) {
+              write.csv(TF_scores, con, quote=FALSE)
+            }
+          )
+          
+          if (tissueType() %in% OTHER_TISSUES) {
+            keep_rows <- order(rowSums(abs(TF_scores)), decreasing = TRUE)[1:25]
+            tissueTypeTopTFs <- rownames(TF_scores)[keep_rows]
+          }
+          
+          shinyjs::hide("nisDiv2")
+          shinyjs::show("nisDiv")
+          tryCatch(
+            {
+              queryNIS(TF_scores, querySampTab(), tissueType(), tissueTypeTopTFs)   
+            },
+            error=function(condition) {
+              shinyalert("Error", paste0("Something went wrong with NIS plotting of your samples: ",
+                                         condition), type="error")
+              return(NULL)
+            }
+          )
+          
+          # shinyjs::show("gsDownload")
+          # outputOptions(output, "gsDownload", suspendWhenHidden = FALSE)
+          
+          shinyjs::show("nisDownload")
+          outputOptions(output, "nisDownload", suspendWhenHidden = FALSE)
+          
+        } else {
+          shinyjs::hide("nisDiv")
+          shinyjs::hide("nisDownload")
+          shinyjs::show("nisDiv2")
+          output$noNIS <- renderText({
+            "Network scores not available for cell/tissue types when \"none of the above\" is chosen."
+          })
+          outputOptions(output, "noNIS", suspendWhenHidden = FALSE)
+        }
+        
+        
+        graphics.off() # Essential for pheatmap to render for some reason...
+        
+        hide_spinner(spin_id = "overall_spinner", session=session)
+        
+        delay(ms=5000,
+              updateProgressBar(session = session, id = "progress", title="Analysis Complete!",
+                                value = 100, total = 100))
+        
+      } else if (actionChoice() == "Browse reference data") { 
+        
+        ###################################
+        # For just browsing reference data
+        shinyjs::hide("classDownload")
+        # shinyjs::hide("gsDownload")
+        shinyjs::hide("nisDownload")
+        shinyjs::hide("classDiv")
+        shinyjs::hide("nisDiv")
+        #shinyjs::hide("validat_plots")
+        hideTab(inputId="analysis_tabs", target="newTrainingValidation")
+        
+        # Load in TISSUE-SPECIFIC broadReturn and iGenes
+        ##### Fix naming scheme for classifiers and iGenes
+        broadReturn <- load_classifier(tissueTypeRef())$broadReturn
+        ref <- load_engineered_ref(tissueTypeRef())
+        tissueTypeRefDat <- ref$expDat
+        tissueTypeRefSt <- ref$sampTab
+        
+        
+        updateProgressBar(session = session, id = "progress", title = "Loaded in reference data...",
+                          value = 15, total = 100)
+        
         shinyjs::show("engineeredRefClassDiv")
         
         output$engineeredDescrip <- renderText({
-          "How does your protocol compare to publicly available data from related studies? \n \n"   
+          paste0("Reference datasets for engineered ", tissueTypeRef(), " studies")   
         })
+        outputOptions(output, "engineeredDescrip", suspendWhenHidden = FALSE)
         
         output$engineeredRef <- renderPlotly({
           queryClassifierRef(broadReturn, tissueTypeRefSt, tissueTypeRefDat, groupBy="citation")
         })
         outputOptions(output, "engineeredRef", suspendWhenHidden = FALSE)
         
-      } else {
-        shinyjs::hide("engineeredRefClassDiv")
-        # shinyjs::hide("nisDownload")
+        updateProgressBar(session = session, id = "progress", title="Finished classification!", #, now starting GRN analysis...",
+                          value = 30, total = 100)
         
-        output$engineeredDescrip <- renderText({
-          "Comparison to engineered reference samples unavailable for selected cell/tissue type."   
-        })
-        outputOptions(output, "engineeredDescrip", suspendWhenHidden = FALSE)
-      }
-      
-      output$classDownload <- downloadHandler(
-        filename = function() {
-          paste('classification_results_', Sys.Date(), '.csv', sep='')
-        },
-        content = function(con) {
-          write.csv(classMatrixQuery, con, quote=FALSE)
-        }
-      )
-      
-      shinyjs::show("classDownload")
-      outputOptions(output, "classDownload", suspendWhenHidden = FALSE)
-      
-      # updateProgressBar(session = session, id = "progress", title="Now starting GRN analysis...",
-      #                   value = 50, total = 100)
-      
-      
-      #####
-      # NIS
-
-      updateProgressBar(session = session, id = "progress", title="Now analyzing transcriptional regulators...may take several minutes",
-                        value = 85, total = 100)
-
-      if(tissueType() != "none_of_the_above") {
-
-        TF_scores <- tryCatch(
-          run_nis(queryExpDat_new, querySampTab(), iGenes, tissueType()),
-          error=function(condition) {
-            shinyalert("Error", paste0("Something went wrong with NIS analysis of your samples: ",
-                                       condition), type="error")
-            return(NULL)
-          })
-
-        output$nisDownload <- downloadHandler(
-          filename = function() {
-            paste('network_results_', Sys.Date(), '.csv', sep='')
-          },
-          content = function(con) {
-            write.csv(TF_scores, con, quote=FALSE)
-          }
-        )
+        ###### GRN Analysis ######
         
-        if (tissueType() %in% OTHER_TISSUES) {
-          keep_rows <- order(rowSums(abs(TF_scores)), decreasing = TRUE)[1:25]
-          tissueTypeTopTFs <- rownames(TF_scores)[keep_rows]
-        }
         
-        shinyjs::hide("nisDiv2")
-        shinyjs::show("nisDiv")
-        tryCatch(
-          {
-            queryNIS(TF_scores, querySampTab(), tissueType(), tissueTypeTopTFs)   
-          },
-          error=function(condition) {
-            shinyalert("Error", paste0("Something went wrong with NIS plotting of your samples: ",
-                                       condition), type="error")
-            return(NULL)
-          }
-        )
+        ### GRN Status
+        # shinyjs::show("grnStatDiv")
+        # shinyjs::hide("GRNstatQueryDiv")
+        # shinyjs::show("grnBrowseDiv")
+        # 
+        # updateProgressBar(session = session, id = "progress", title="Now analyzing GRN status...",
+        #                   value = 70, total = 100)
+        # 
+        # 
+        # observeEvent(input$submitGRN, {
+        #    queryGRNBrowse(tissueTypeRefGRNStat, tissueTypeRefSt, grnTissueType(), ncols=2)
+        # })
         
-        # shinyjs::show("gsDownload")
-        # outputOptions(output, "gsDownload", suspendWhenHidden = FALSE)
-        
-        shinyjs::show("nisDownload")
-        outputOptions(output, "nisDownload", suspendWhenHidden = FALSE)
-        
-      } else {
-        shinyjs::hide("nisDiv")
-        shinyjs::hide("nisDownload")
+        ### NIS
         shinyjs::show("nisDiv2")
         output$noNIS <- renderText({
-          "Network scores not available for cell/tissue types when \"none of the above\" is chosen."
+          "Network scores unavailable in browse mode."
         })
         outputOptions(output, "noNIS", suspendWhenHidden = FALSE)
-      }
+        
+        hide_spinner(spin_id = "overall_spinner", session=session)
+        
+        delay(ms=5000,
+              updateProgressBar(session = session, id = "progress", title="Analysis Complete!",
+                                value = 100, total = 100))
+        
+      } #else {
+      #         
+      #      }
       
       
-      graphics.off() # Essential for pheatmap to render for some reason...
-      
-      hide_spinner(spin_id = "overall_spinner", session=session)
-      
-      delay(ms=5000,
-            updateProgressBar(session = session, id = "progress", title="Analysis Complete!",
-                              value = 100, total = 100))
-      
-    } else if (actionChoice() == "Browse reference data") { 
-      
-      ###################################
-      # For just browsing reference data
-      shinyjs::hide("classDownload")
-      # shinyjs::hide("gsDownload")
-      shinyjs::hide("nisDownload")
-      shinyjs::hide("classDiv")
-      shinyjs::hide("nisDiv")
-      #shinyjs::hide("validat_plots")
-      hideTab(inputId="analysis_tabs", target="newTrainingValidation")
-      
-      # Load in TISSUE-SPECIFIC broadReturn and iGenes
-      ##### Fix naming scheme for classifiers and iGenes
-      broadReturn <- load_classifier(tissueTypeRef())$broadReturn
-      ref <- load_engineered_ref(tissueTypeRef())
-      tissueTypeRefDat <- ref$expDat
-      tissueTypeRefSt <- ref$sampTab
-      
-      
-      updateProgressBar(session = session, id = "progress", title = "Loaded in reference data...",
-                        value = 15, total = 100)
-      
-      shinyjs::show("engineeredRefClassDiv")
-      
-      output$engineeredDescrip <- renderText({
-        paste0("Reference datasets for engineered ", tissueTypeRef(), " studies")   
-      })
-      outputOptions(output, "engineeredDescrip", suspendWhenHidden = FALSE)
-      
-      output$engineeredRef <- renderPlotly({
-        queryClassifierRef(broadReturn, tissueTypeRefSt, tissueTypeRefDat, groupBy="citation")
-      })
-      outputOptions(output, "engineeredRef", suspendWhenHidden = FALSE)
-      
-      updateProgressBar(session = session, id = "progress", title="Finished classification!", #, now starting GRN analysis...",
-                        value = 30, total = 100)
-      
-      ###### GRN Analysis ######
-      
-      
-      ### GRN Status
-      # shinyjs::show("grnStatDiv")
-      # shinyjs::hide("GRNstatQueryDiv")
-      # shinyjs::show("grnBrowseDiv")
-      # 
-      # updateProgressBar(session = session, id = "progress", title="Now analyzing GRN status...",
-      #                   value = 70, total = 100)
-      # 
-      # 
-      # observeEvent(input$submitGRN, {
-      #    queryGRNBrowse(tissueTypeRefGRNStat, tissueTypeRefSt, grnTissueType(), ncols=2)
-      # })
-      
-      ### NIS
-      shinyjs::show("nisDiv2")
-      output$noNIS <- renderText({
-        "Network scores unavailable in browse mode."
-      })
-      outputOptions(output, "noNIS", suspendWhenHidden = FALSE)
-      
-      hide_spinner(spin_id = "overall_spinner", session=session)
-      
-      delay(ms=5000,
-            updateProgressBar(session = session, id = "progress", title="Analysis Complete!",
-                              value = 100, total = 100))
-      
-    } #else {
-    #         
-    #      }
-    
-    
+    }, error = function(condition) {
+      hide_spinner(spin_id = "overall_spinner", session = session)
+      shinyalert("Error", conditionMessage(condition), type = "error")
+    })
   })
   
 }
