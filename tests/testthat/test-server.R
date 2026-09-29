@@ -53,3 +53,49 @@ test_that("a missing reference file is reported to the user instead of hanging",
   })
   expect_match(shown, "lung_engineeredRef_ranks.rds", fixed = TRUE)
 })
+
+# ---- user input errors: one clear alert, spinner stopped --------------------
+upload_path <- function(p) list(name = basename(p), datapath = p, size = file.size(p), type = "text/csv")
+
+run_submit <- function(sampTab_path, exp_path, tissue = "liver") {
+  seen <- list(alerts = character(0), hidden = 0)
+  local_mocked_bindings(shinyalert = function(title, text = "", ...) seen$alerts <<- c(seen$alerts, text),
+                        .package = "shinyalert", .env = parent.frame())
+  local_mocked_bindings(hide_spinner = function(...) seen$hidden <<- seen$hidden + 1,
+                        .package = "shinybusy", .env = parent.frame())
+  shiny::testServer(server_fn, {
+    session$setInputs(actionChoice = "CellNet analysis", species = "Human", tissueType = tissue,
+                      sampTabUploadCSV = upload_path(sampTab_path), expMatUpload = upload_path(exp_path))
+    session$setInputs(submit = 1)
+  })
+  seen
+}
+
+test_that("a query sharing no genes with training gets one alert and the spinner stops", {
+  x <- read.csv(example_file("example_counts_matrix.csv"), check.names = FALSE)
+  x[[1]] <- paste0("NOT_A_GENE_", seq_len(nrow(x)))
+  f <- withr::local_tempfile(fileext = ".csv"); write.csv(x, f, row.names = FALSE)
+  seen <- run_submit(example_file("example_sample_metadata_table.csv"), f)
+  expect_length(seen$alerts, 1)
+  expect_match(seen$alerts, "does not share any genes")
+  expect_gte(seen$hidden, 1)
+})
+
+test_that("a metadata table without description1 stops the spinner", {
+  st <- read.csv(example_file("example_sample_metadata_table.csv"))
+  st$description1 <- NULL
+  f <- withr::local_tempfile(fileext = ".csv"); write.csv(st, f, row.names = FALSE)
+  seen <- run_submit(f, example_file("example_counts_matrix.csv"))
+  expect_match(seen$alerts, "description1")
+  expect_gte(seen$hidden, 1)
+})
+
+test_that("a metadata sample missing from the expression matrix is named in the alert", {
+  st <- read.csv(example_file("example_sample_metadata_table.csv"))
+  st <- rbind(st, transform(st[1, ], sample_name = "EXTRA_SAMPLE"))
+  f <- withr::local_tempfile(fileext = ".csv"); write.csv(st, f, row.names = FALSE)
+  seen <- run_submit(f, example_file("example_counts_matrix.csv"))
+  expect_length(seen$alerts, 1)
+  expect_match(seen$alerts, "EXTRA_SAMPLE")
+  expect_gte(seen$hidden, 1)
+})

@@ -392,24 +392,37 @@ server <- function(input, output, session) {
       if (actionChoice() == "CellNet analysis") {
         if (is.null(querySampTab()) || is.null(queryExpDat())) {
           shinyalert("Oops!", "Please upload proper sample metadata table and expression matrix.", type = "error")
+          hide_spinner(spin_id = "overall_spinner", session=session)
           return(NULL)
         }
         
         if (!("sample_name" %in% colnames(querySampTab()))) {
           shinyalert("Oops!", "Metadata table missing sample_name column. 
                          Please make sure columns are named correctly.", type = "error")
+          hide_spinner(spin_id = "overall_spinner", session=session)
           return(NULL)
         }
         
         if (!("description1" %in% colnames(querySampTab()))) {
           shinyalert("Oops!", "Metadata table missing description1 column. 
                          Please make sure columns are named correctly.", type = "error")
+          hide_spinner(spin_id = "overall_spinner", session=session)
           return(NULL)
         }
         
         if (!all(colnames(queryExpDat()) %in% querySampTab()[,"sample_name"])) {
           shinyalert("Oops!", "Column names of expression matrix DO NOT match sample_name column of metadata table. 
                          Please re-submit correctly formatted tables and try again.", type = "error")
+          hide_spinner(spin_id = "overall_spinner", session=session)
+          return(NULL)
+        }
+
+        missing_samples <- setdiff(querySampTab()[,"sample_name"], colnames(queryExpDat()))
+        if (length(missing_samples) > 0) {
+          shinyalert("Oops!", paste0("These samples in the metadata table are not columns of the expression matrix: ",
+                                     paste(missing_samples, collapse = ", "),
+                                     ". Please re-submit correctly formatted tables and try again."), type = "error")
+          hide_spinner(spin_id = "overall_spinner", session=session)
           return(NULL)
         }
         
@@ -447,6 +460,8 @@ server <- function(input, output, session) {
           if (length(iGenes) == 0) {
             shinyalert("Error!", "Your expression matrix does not share any genes with the training data.
                             Please make sure the row names of your expression matrix are GENE SYMBOLS.", type="error")
+            hide_spinner(spin_id = "overall_spinner", session=session)
+            return(NULL)
           } else if (length(iGenes) < 1000) {
             shinyalert("Warning!", "Your expression matrix shares fewer than 1000 genes with the training data.
                             The most likely cause is that the row names of your expression matrix are not GENE SYMBOLS.
