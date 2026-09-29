@@ -11,3 +11,4 @@ golden <- function(name) readRDS(file.path(repo_root, "tests", "golden", paste0(
 options(pacnet.data_dir = file.path(repo_root, "data"))
 
 source(app_file("cnlib.R"))
+source(app_file("data_access.R"))
